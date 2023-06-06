@@ -1,0 +1,10 @@
+# Static analysis only, for formatting use prettier
+
+root: true # Don't look at parent dirs
+plugins:
+  - '@typescript-eslint' # Provides tools to analyze TS
+parser: '@typescript-eslint/parser' # Interprets TypeScript
+ignorePatterns:
+  - /dist # Do not check compiled code
+rules:
+  no-console: error # Don't push console logs
