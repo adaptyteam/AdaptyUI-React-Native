@@ -70,3 +70,7 @@ android/keystores/debug.keystore
 .turbo/
 
 dist/
+
+
+# Local builds
+.tgz
