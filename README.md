@@ -10,14 +10,6 @@ npm install @adapty/react-native-ui
 
 ## Usage
 
-```js
-import { multiply } from '@adapty/react-native-ui';
-
-// ...
-
-const result = await multiply(3, 7);
-```
-
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
@@ -27,5 +19,3 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 MIT
 
 ---
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
