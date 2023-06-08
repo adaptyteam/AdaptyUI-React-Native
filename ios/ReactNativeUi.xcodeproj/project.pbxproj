@@ -7,8 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5E555C0D2413F4C50049A1A2 /* ReactNativeUi.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* ReactNativeUi.m */; };
-		F4FF95D7245B92E800C19C63 /*  ReactNativeUi.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /*  ReactNativeUi.swift */; };
+		861008682A323C7300370975 /* RNAViewable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861008622A323C7300370975 /* RNAViewable.swift */; };
+		861008692A323C7300370975 /* RNAUICallHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861008632A323C7300370975 /* RNAUICallHandler.swift */; };
+		8610086A2A323C7300370975 /* AdaptyUI+View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861008642A323C7300370975 /* AdaptyUI+View.swift */; };
+		8610086B2A323C7300370975 /* RNAConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861008652A323C7300370975 /* RNAConstants.swift */; };
+		8610086C2A323C7300370975 /* RNAUICallHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 861008662A323C7300370975 /* RNAUICallHandler.m */; };
+		8610086D2A323C7300370975 /* RNAUIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861008672A323C7300370975 /* RNAUIError.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,9 +29,14 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libReactNativeUi.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libReactNativeUi.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		B3E7B5891CC2AC0600A0062D /* ReactNativeUi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReactNativeUi.m; sourceTree = "<group>"; };
+		861008622A323C7300370975 /* RNAViewable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNAViewable.swift; sourceTree = "<group>"; };
+		861008632A323C7300370975 /* RNAUICallHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNAUICallHandler.swift; sourceTree = "<group>"; };
+		861008642A323C7300370975 /* AdaptyUI+View.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AdaptyUI+View.swift"; sourceTree = "<group>"; };
+		861008652A323C7300370975 /* RNAConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNAConstants.swift; sourceTree = "<group>"; };
+		861008662A323C7300370975 /* RNAUICallHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNAUICallHandler.m; sourceTree = "<group>"; };
+		861008672A323C7300370975 /* RNAUIError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNAUIError.swift; sourceTree = "<group>"; };
+		863CDCE42A2F001000BF80FB /* RNAConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNAConstants.swift; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* ReactNativeUi-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ReactNativeUi-Bridging-Header.h"; sourceTree = "<group>"; };
-		F4FF95D6245B92E800C19C63 /* ReactNativeUi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactNativeUi.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,9 +61,14 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				F4FF95D6245B92E800C19C63 /* ReactNativeUi.swift */,
-				B3E7B5891CC2AC0600A0062D /* ReactNativeUi.m */,
+				861008642A323C7300370975 /* AdaptyUI+View.swift */,
+				861008652A323C7300370975 /* RNAConstants.swift */,
+				861008662A323C7300370975 /* RNAUICallHandler.m */,
+				861008632A323C7300370975 /* RNAUICallHandler.swift */,
+				861008672A323C7300370975 /* RNAUIError.swift */,
+				861008622A323C7300370975 /* RNAViewable.swift */,
 				F4FF95D5245B92E700C19C63 /* ReactNativeUi-Bridging-Header.h */,
+				863CDCE42A2F001000BF80FB /* RNAConstants.swift */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -116,8 +130,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F4FF95D7245B92E800C19C63 /* ReactNativeUi.swift in Sources */,
-				B3E7B58A1CC2AC0600A0062D /* ReactNativeUi.m in Sources */,
+				861008692A323C7300370975 /* RNAUICallHandler.swift in Sources */,
+				8610086A2A323C7300370975 /* AdaptyUI+View.swift in Sources */,
+				861008682A323C7300370975 /* RNAViewable.swift in Sources */,
+				8610086C2A323C7300370975 /* RNAUICallHandler.m in Sources */,
+				8610086D2A323C7300370975 /* RNAUIError.swift in Sources */,
+				8610086B2A323C7300370975 /* RNAConstants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

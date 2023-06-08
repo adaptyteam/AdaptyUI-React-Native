@@ -3,12 +3,6 @@ import Adapty
 import AdaptyUI
 import react_native_adapty
 
-extension AdaptyPaywallController {
-    var id: String {
-        return "1"
-    }
-}
-
 extension UIViewController {
     var isOrContainsAdaptyController: Bool {
         guard let presentedViewController = presentedViewController else {
@@ -19,8 +13,9 @@ extension UIViewController {
 }
 
 
-@objc(RNAPaywallView)
-class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
+@objc(RNAUICallHandler)
+class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
+    
     // MARK: - Config
     
     private var paywallControllers = [UUID: AdaptyPaywallController]()
@@ -50,8 +45,8 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     // Do not send events to JS, when JS does not expect
     private var hasListeners = false
+    
     override func startObserving() {
-        
         self.hasListeners = true
     }
     override func stopObserving() {
@@ -59,7 +54,7 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// Sends event to JS layer if client has listeners
-    private func pushEvent(_ event: EventName) {
+    private func pushEvent(_ event: EventName, view: AdaptyPaywallController) {
         if !hasListeners {
             return
         }
@@ -68,16 +63,18 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// Sends event to JS layer if client has listeners
-    private func pushEvent<T: Encodable>(_ event: EventName, data: Viewable<T>) {
+    private func pushEvent<T: Encodable>(_ event: EventName, view: AdaptyPaywallController, data: T) {
         if !hasListeners {
             return
         }
         
-        guard let bytes = try? AdaptyContext.jsonEncoder.encode(data),
+        let respData = Viewable.init(payload: data, view: view)
+        
+        guard let bytes = try? AdaptyContext.jsonEncoder.encode(respData),
               let dataStr = String(data: bytes, encoding: .utf8)
         else {
             // TODO: Should not happen
-            return self.pushEvent(event)
+            return self.pushEvent(event, view: view)
         }
         
         self.sendEvent(withName: event.rawValue, body: dataStr)
@@ -120,7 +117,9 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                 }
                 
                 self?.cachePaywallController(vc, id: uuid)
-                return ctx.resolver(vc.id)
+                
+                print("ADADJKL",uuid.uuidString)
+                return ctx.resolver(uuid.uuidString)
             }
         }
     }
@@ -172,22 +171,25 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return ctx.notImplemented()
         }
         
-        vc.modalPresentationStyle = .overFullScreen
         
-        guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
-            //            let error = AdaptyError(AdaptyUIFlutterError.viewPresentationError(id))
-            //            flutterCall.callAdaptyError(flutterResult, error: error)
-            return ctx.notImplemented()
-        }
-        
-        guard !rootVC.isOrContainsAdaptyController else {
-            //            let error = AdaptyError(AdaptyUIFlutterError.viewAlreadyPresented(id))
-            //            flutterCall.callAdaptyError(flutterResult, error: error)
-            return ctx.notImplemented()
-        }
-        
-        rootVC.present(vc, animated: true) {
-            ctx.resolve()
+        DispatchQueue.main.async {
+            vc.modalPresentationStyle = .overFullScreen
+            
+            guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
+                //            let error = AdaptyError(AdaptyUIFlutterError.viewPresentationError(id))
+                //            flutterCall.callAdaptyError(flutterResult, error: error)
+                return ctx.notImplemented()
+            }
+            
+            guard !rootVC.isOrContainsAdaptyController else {
+                //            let error = AdaptyError(AdaptyUIFlutterError.viewAlreadyPresented(id))
+                //            flutterCall.callAdaptyError(flutterResult, error: error)
+                return ctx.notImplemented()
+            }
+            
+            rootVC.present(vc, animated: true) {
+                ctx.resolve()
+            }
         }
     }
     
@@ -202,10 +204,12 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return ctx.argNotFound(name: "a")
         }
         
-        vc.dismiss(animated: true) { [weak self] in
-            self?.deleteCachedPaywallController(id)
-            
-            return ctx.resolve()
+        DispatchQueue.main.async {
+            vc.dismiss(animated: true) { [weak self] in
+                self?.deleteCachedPaywallController(id)
+                
+                return ctx.resolve()
+            }
         }
     }
     
@@ -215,21 +219,27 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     // MARK: - Event Handlers
     
+    public func paywallController(_ controller: AdaptyPaywallController,
+                                  didStartPurchase product: AdaptyPaywallProduct) {
+        self.pushEvent(EventName.onPurchaseStarted, view: controller, data: product)
+    }
+    
+    
     /// CLOSE BUTTON PRESS
     public func paywallControllerDidPressCloseButton(_ controller: AdaptyPaywallController) {
-        self.pushEvent(EventName.onCloseButtonPress)
+        self.pushEvent(EventName.onCloseButtonPress, view: controller)
     }
     
     /// CANCEL PURCHASE PRESS
     public func paywallControllerDidCancelPurchase(_ controller: AdaptyPaywallController) {
-        self.pushEvent(EventName.onPurchaseCancelled)
+        self.pushEvent(EventName.onPurchaseCancelled, view: controller)
     }
     
     /// PURCHASE SUCCESS
     public func paywallController(_ controller: AdaptyPaywallController, didFinishPurchaseWith profile: AdaptyProfile) {
         let data = Viewable.init(payload: profile, view: controller)
         
-        self.pushEvent(EventName.onPurchaseCompleted, data: data)
+        self.pushEvent(EventName.onPurchaseCompleted, view: controller, data: data)
     }
     
     /// PURCHASE FAILED
@@ -237,21 +247,21 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                                   didFailPurchaseWith error: AdaptyError) {
         let data = Viewable.init(payload: error, view: controller)
         
-        self.pushEvent(EventName.onPurchaseFailed, data: data)
+        self.pushEvent(EventName.onPurchaseFailed, view: controller, data: data)
     }
     
     /// RESTORE SUCCESS
     func paywallController(_ controller: AdaptyPaywallController, didFinishRestoreWith profile: AdaptyProfile) {
         let data = Viewable.init(payload: profile, view: controller)
         
-        self.pushEvent(EventName.onRestoreCompleted, data: data)
+        self.pushEvent(EventName.onRestoreCompleted, view: controller, data: data)
     }
     
     /// RESTORE FAILED
     public func paywallController(_ controller: AdaptyPaywallController, didFailRestoreWith error: AdaptyError) {
         let data = Viewable.init(payload: error, view: controller)
         
-        self.pushEvent(EventName.onRestoreFailed, data: data)
+        self.pushEvent(EventName.onRestoreFailed, view: controller, data: data)
     }
     
     /// LOAD PRODUCTS FAILED
@@ -260,7 +270,7 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                                   error: AdaptyError) -> Bool {
         let data = Viewable.init(payload: error, view: controller)
         
-        self.pushEvent(EventName.onLoadingProductsFailed, data: data)
+        self.pushEvent(EventName.onLoadingProductsFailed, view: controller, data: data)
         return policy == .default
     }
     
@@ -269,6 +279,6 @@ class RNAPaywallView: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                                   didFailRenderingWith error: AdaptyError) {
         let data = Viewable.init(payload: error, view: controller)
         
-        self.pushEvent(EventName.onRenderingFailed, data: data)
+        self.pushEvent(EventName.onRenderingFailed, view: controller, data: data)
     }
 }

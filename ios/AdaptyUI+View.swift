@@ -1,6 +1,12 @@
 import Adapty
 import AdaptyUI
 
+extension AdaptyPaywallController {
+    var id: UUID {
+        return UUID()
+    }
+}
+
 extension AdaptyUI {
     struct View: Encodable {
         let id: String
@@ -19,7 +25,8 @@ extension AdaptyUI {
 
 extension AdaptyPaywallController {
     func toView() -> AdaptyUI.View {
-        AdaptyUI.View(id: id,
+            
+        AdaptyUI.View(id: id.uuidString,
                       templateId: "x",
                       paywallId: paywall.id,
                       paywallVariationId: paywall.variationId)

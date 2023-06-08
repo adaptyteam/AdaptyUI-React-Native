@@ -1,7 +1,7 @@
 #import "React/RCTBridgeModule.h"
 #import "React/RCTEventEmitter.h"
 
-@interface RCT_EXTERN_MODULE(RNAPaywallView, RCTEventEmitter)
+@interface RCT_EXTERN_MODULE(RNAUICallHandler, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(
                   handle:   (NSString)method

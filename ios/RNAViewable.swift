@@ -1,9 +1,9 @@
 import Foundation
-import Adapty
+import AdaptyUI
 
 struct Viewable<T: Encodable>: Encodable  {
-    let payload: T;
-    let view: AdaptyUI.View;
+    let payload: T?;
+    let view: AdaptyPaywallController
     
     
     enum CodingKeys: String, CodingKey {
@@ -14,7 +14,7 @@ struct Viewable<T: Encodable>: Encodable  {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(payload, forKey: .payload)
-        try container.encode(view.id, forKey: ._viewId)
+        try container.encode(view.toView().id, forKey: ._viewId)
     }
 }
 
