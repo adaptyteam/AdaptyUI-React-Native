@@ -1,22 +1,12 @@
-import { NativeModules, Platform } from 'react-native';
+import { AdaptyPaywall } from 'react-native-adapty';
+import { CreatePaywallViewParamsInput } from './types';
+import { ViewController } from './view-controller';
 
-const LINKING_ERROR =
-  `The package '@adapty/react-native-ui' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
+export async function createPaywallView(
+  paywall: AdaptyPaywall,
+  params: CreatePaywallViewParamsInput = {},
+): Promise<ViewController> {
+  const controller = await ViewController.create(paywall, params);
 
-const ReactNativeUi = NativeModules.ReactNativeUi
-  ? NativeModules.ReactNativeUi
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-export function multiply(a: number, b: number): Promise<number> {
-  return ReactNativeUi.multiply(a, b);
+  return controller;
 }
