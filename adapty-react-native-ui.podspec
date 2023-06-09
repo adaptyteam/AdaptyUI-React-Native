@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
-  s.dependency "AdaptyUI", "1.0.1"
+  s.dependency "AdaptyUI", "1.1.0"
   s.dependency "React-Core"
   s.dependency "Adapty", "2.4.5"
   s.dependency "react-native-adapty", "~> 2.4.7-beta.1"
