@@ -1,4 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.adapty.reactnativeui">
-
-</manifest>
+<manifest package="io.adapty.react.ui" />
