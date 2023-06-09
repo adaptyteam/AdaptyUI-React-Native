@@ -108,7 +108,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                                                preloadProducts: Bool,
                                                productsTitlesResolver: ((AdaptyProduct) -> String)?
     ) {
-        AdaptyUI.getViewConfiguration(forPaywall: paywall) { [weak self] result in
+        AdaptyUI.getViewConfiguration(forPaywall: paywall) { result in
             switch result {
             case let .failure(error):
                 return ctx.err(error)
@@ -121,14 +121,9 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                                                     // productsTitlesResolver: productsTitlesResolver,
                 )
                 
-                guard let uuid = UUID(uuidString: vc.toView().id) else {
-                    return ctx.notImplemented()
-                }
+                self.cachePaywallController(vc, id: vc.id)
                 
-                self?.cachePaywallController(vc, id: uuid)
-                
-                print("ADADJKL",uuid.uuidString)
-                return ctx.resolver(uuid.uuidString)
+                return ctx.resolver(vc.id.uuidString)
             }
         }
     }
@@ -228,66 +223,69 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     // MARK: - Event Handlers
     
+    /// CLOSE BUTTON
+    public func paywallControllerDidPressCloseButton(_ controller: AdaptyPaywallController) {
+        self.pushEvent(EventName.onCloseButtonPress, view: controller)
+    }
+    
+    /// PRODUCT SELECTED
+    public func paywallController(_ controller: AdaptyPaywallController,
+                                  didSelectProduct product: AdaptyPaywallProduct) {
+        self.pushEvent(EventName.onProductSelected, view: controller, data: product)
+    }
+    
+    /// PURCHASE STARTED
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didStartPurchase product: AdaptyPaywallProduct) {
         self.pushEvent(EventName.onPurchaseStarted, view: controller, data: product)
     }
     
-    
-    /// CLOSE BUTTON PRESS
-    public func paywallControllerDidPressCloseButton(_ controller: AdaptyPaywallController) {
-        self.pushEvent(EventName.onCloseButtonPress, view: controller)
-    }
-    
-    /// CANCEL PURCHASE PRESS
-    public func paywallControllerDidCancelPurchase(_ controller: AdaptyPaywallController) {
-        self.pushEvent(EventName.onPurchaseCancelled, view: controller)
-    }
-    
     /// PURCHASE SUCCESS
-    public func paywallController(_ controller: AdaptyPaywallController, didFinishPurchaseWith profile: AdaptyProfile) {
-        let data = Viewable.init(payload: profile, view: controller)
-        
-        self.pushEvent(EventName.onPurchaseCompleted, view: controller, data: data)
-    }
-    
-    /// PURCHASE FAILED
     public func paywallController(_ controller: AdaptyPaywallController,
-                                  didFailPurchaseWith error: AdaptyError) {
-        let data = Viewable.init(payload: error, view: controller)
-        
-        self.pushEvent(EventName.onPurchaseFailed, view: controller, data: data)
-    }
-    
-    /// RESTORE SUCCESS
-    func paywallController(_ controller: AdaptyPaywallController, didFinishRestoreWith profile: AdaptyProfile) {
-        let data = Viewable.init(payload: profile, view: controller)
-        
-        self.pushEvent(EventName.onRestoreCompleted, view: controller, data: data)
-    }
-    
-    /// RESTORE FAILED
-    public func paywallController(_ controller: AdaptyPaywallController, didFailRestoreWith error: AdaptyError) {
-        let data = Viewable.init(payload: error, view: controller)
-        
-        self.pushEvent(EventName.onRestoreFailed, view: controller, data: data)
-    }
-    
-    /// LOAD PRODUCTS FAILED
-    public func paywallController(_ controller: AdaptyPaywallController,
-                                  didFailLoadingProductsWith policy: AdaptyProductsFetchPolicy,
-                                  error: AdaptyError) -> Bool {
-        let data = Viewable.init(payload: error, view: controller)
-        
-        self.pushEvent(EventName.onLoadingProductsFailed, view: controller, data: data)
-        return policy == .default
+                                  didFinishPurchase product: AdaptyPaywallProduct,
+                                  profile: AdaptyProfile) {
+        self.pushEvent(EventName.onPurchaseCompleted, view: controller, data: profile)
     }
     
     /// RENDERING FAILED
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didFailRenderingWith error: AdaptyError) {
-        let data = Viewable.init(payload: error, view: controller)
+        self.pushEvent(EventName.onRenderingFailed, view: controller, data: error)
+    }
+    
+    
+    /// LOAD PRODUCTS FAILED
+    public func paywallController(_ controller: AdaptyPaywallController,
+                                  didFailLoadingProductsWith policy: AdaptyProductsFetchPolicy,
+                                  error: AdaptyError) -> Bool {
+        self.pushEvent(EventName.onLoadingProductsFailed, view: controller, data: error)
         
-        self.pushEvent(EventName.onRenderingFailed, view: controller, data: data)
+        return policy == .default
+    }
+    
+    /// PURCHASE FAILED
+    func paywallController(_ controller: AdaptyPaywallController,
+                           didFailPurchase product: AdaptyPaywallProduct,
+                           error: AdaptyError) {
+        self.pushEvent(EventName.onPurchaseFailed, view: controller, data: error)
+    }
+    
+    /// CANCEL PURCHASE PRESS
+    func paywallController(_ controller: AdaptyPaywallController,
+                           didCancelPurchase product: AdaptyPaywallProduct) {
+        self.pushEvent(EventName.onPurchaseCancelled, view: controller, data: product)
+    }
+    
+    /// RESTORE SUCCESS
+    func paywallController(_ controller: AdaptyPaywallController,
+                           didFinishRestoreWith profile: AdaptyProfile) {
+        self.pushEvent(EventName.onRestoreCompleted, view: controller, data: profile)
+    }
+    
+    
+    /// RESTORE FAILED
+    public func paywallController(_ controller: AdaptyPaywallController,
+                                  didFailRestoreWith error: AdaptyError) {
+        self.pushEvent(EventName.onRestoreFailed, view: controller, data: error)
     }
 }
