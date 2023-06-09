@@ -1,8 +1,4 @@
-lockfileVersion: '6.1'
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
+lockfileVersion: '6.0'
 
 devDependencies:
   '@release-it/conventional-changelog':
@@ -33,8 +29,8 @@ devDependencies:
     specifier: 0.63.0
     version: 0.63.0(@babel/core@7.22.1)(react@16.13.1)
   react-native-adapty:
-    specifier: ^2.4.6
-    version: 2.4.6(react-native@0.63.0)
+    specifier: 2.4.7-beta
+    version: 2.4.7-beta(react-native@0.63.0)
   release-it:
     specifier: 15.11.0
     version: 15.11.0
@@ -7264,8 +7260,8 @@ packages:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
     dev: true
 
-  /react-native-adapty@2.4.6(react-native@0.63.0):
-    resolution: {integrity: sha512-ZnqQLNrRKO539C6en/qjlLg9WH1C2HiP7t7mv9fH428NiVbXovqrkbNiJwu8UNAvRQnS13Tgj11mw+KuUHrmpw==}
+  /react-native-adapty@2.4.7-beta(react-native@0.63.0):
+    resolution: {integrity: sha512-r3A31TNMmD21Gmb3zD2Pc0I74BrvqeeFFe/40Q6axWhuA9SAK3X2SrvChlWEvIZQKhYYHYysD6tYCh8KwwIu/Q==}
     peerDependencies:
       react-native: '>= 0.60.0'
     dependencies:
@@ -9085,3 +9081,7 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false

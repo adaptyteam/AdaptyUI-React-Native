@@ -25,7 +25,7 @@
     "noImplicitOverride": true,
     "lib": ["ESNext"],
     "outDir": "dist",
-    "types": ["react-native", "node"],
+    "types": ["react-native"],
     "noFallthroughCasesInSwitch": true,
     "noStrictGenericChecks": false,
     "noUncheckedIndexedAccess": true,
