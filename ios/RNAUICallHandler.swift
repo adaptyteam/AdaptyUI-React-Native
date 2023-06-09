@@ -59,7 +59,16 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return
         }
         
-        self.sendEvent(withName: event.rawValue, body: nil)
+        // could not infer generic type?
+        let respData = Viewable.init(payload: nil as AdaptyProfile?, view: view)
+        guard let bytes = try? AdaptyContext.jsonEncoder.encode(respData),
+              let dataStr = String(data: bytes, encoding: .utf8)
+        else {
+            // TODO: Should not happen
+            return self.pushEvent(event, view: view)
+        }
+        
+        self.sendEvent(withName: event.rawValue, body: dataStr)
     }
     
     /// Sends event to JS layer if client has listeners
