@@ -8,7 +8,7 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 end_of_line = lf
 
-[*.{kt,swift,m,java}]
+[*.{swift,m}]
 charset = utf-8
 indent_style = space
 indent_size = 4
