@@ -1,5 +1,8 @@
 package io.adapty.react.ui
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
 import com.adapty.Adapty
@@ -126,12 +129,11 @@ class RNAUIModule(reactContext: ReactApplicationContext) :
     }
 
     override fun onUrlClicked(url: String, view: AdaptyPaywallView) {
-        // TODO("Not yet implemented")
+        (view.context as? Activity)?.startActivity(
+            Intent.createChooser(Intent(Intent.ACTION_VIEW, Uri.parse(url)), "") // the default behavior
+        )
     }
 
-    override fun showAlert(event: AdaptyUI.Event, view: AdaptyPaywallView) {
-        // TODO("Not yet implemented")
-    }
 
     @ReactMethod
     fun handle(methodName: String, args: ReadableMap, promise: Promise) {
@@ -201,10 +203,10 @@ class RNAUIModule(reactContext: ReactApplicationContext) :
     }
 
 
-    //            cache.view.onReceiveSystemBarsInsets { insets ->
-//                val paywallInsets = AdaptyPaywallInsets.of(insets.top, insets.bottom)
-//                cache.view.showPaywall(cache.paywall, cache.products, cache.config, paywallInsets)
-//            }
+    // cache.view.onReceiveSystemBarsInsets { insets ->
+    // val paywallInsets = AdaptyPaywallInsets.of(insets.top, insets.bottom)
+    // cache.view.showPaywall(cache.paywall, cache.products, cache.config, paywallInsets)
+    // }
 
     private fun handleDismissView(ctx: RNAContext) {
         val id = ctx.args.getString(VIEW_ID) ?: kotlin.run {
@@ -245,7 +247,7 @@ class RNAUIModule(reactContext: ReactApplicationContext) :
         const val onPurchaseFailed = "onPurchaseFailed"
         const val onRestoreCompleted = "onRestoreCompleted"
         const val onRestoreFailed = "onRestoreFailed"
-        const val onRenderingFailed = "onRenderingFailed"
+            const val onRenderingFailed = "onRenderingFailed"
         const val onLoadingProductsFailed = "onLoadingProductsFailed"
 
     }
