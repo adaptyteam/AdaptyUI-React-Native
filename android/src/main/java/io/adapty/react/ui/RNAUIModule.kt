@@ -134,6 +134,10 @@ class RNAUIModule(reactContext: ReactApplicationContext) :
         )
     }
 
+    override fun showAlert(event: AdaptyUI.Event, view: AdaptyPaywallView) {
+        // Handle on JS side 
+    }
+
 
     @ReactMethod
     fun handle(methodName: String, args: ReadableMap, promise: Promise) {
@@ -247,7 +251,7 @@ class RNAUIModule(reactContext: ReactApplicationContext) :
         const val onPurchaseFailed = "onPurchaseFailed"
         const val onRestoreCompleted = "onRestoreCompleted"
         const val onRestoreFailed = "onRestoreFailed"
-            const val onRenderingFailed = "onRenderingFailed"
+        const val onRenderingFailed = "onRenderingFailed"
         const val onLoadingProductsFailed = "onLoadingProductsFailed"
 
     }
