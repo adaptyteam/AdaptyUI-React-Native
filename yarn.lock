@@ -7150,6 +7150,11 @@ react-is@^18.0.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
   integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
 
+react-native-adapty@^2.4.7:
+  version "2.4.7"
+  resolved "https://registry.yarnpkg.com/react-native-adapty/-/react-native-adapty-2.4.7.tgz#5f7ef1e468c2a74a5ff3d1456ae183c3e32aa64a"
+  integrity sha512-MmAR5SM5GhaNCs5uV9+9AlLE/qufC28Tfovmp+aT8nddmXB6zYY+rBcrFn1XxCbD/kiPKKLD1JqCXI2y4RDr3g==
+
 react-native@0.63.0:
   version "0.63.0"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.63.0.tgz#1444aa04c34b65ca1dce589db166bd112e982b96"
