@@ -4,7 +4,7 @@
         <img src="https://adapty-portal-media-production.s3.amazonaws.com/github/logo-adapty-new.svg">
     </a>
 </b>
-<br>Adapty UI
+<br>@adapty/react-native-ui
 </h1>
 
 <p align="center">
