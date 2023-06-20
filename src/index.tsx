@@ -1,4 +1,4 @@
-import { AdaptyPaywall, AdaptyError } from 'react-native-adapty';
+import { AdaptyPaywall } from 'react-native-adapty';
 import { CreatePaywallViewParamsInput } from './types';
 import { ViewController } from './view-controller';
 
