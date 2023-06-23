@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@adapty/react-native-ui",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.1",
   "description": "Extension to the Adapty SDK that allows you to easily add purchase screens to your application.",
   "license": "MIT",
   "author": "Vanya Dorofeyev <DivanDoesApps@gmail.com> (https://github.com/divanc)",
@@ -36,7 +36,7 @@
     "!**/__mocks__",
     "!**/.*"
   ],
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "packageManager": "yarn@1.22.19",
   "scripts": {
     "test": "jest",
