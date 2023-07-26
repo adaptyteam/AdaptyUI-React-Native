@@ -34,31 +34,33 @@ class RNAUIPackage : ReactPackage {
         val result = RNAViewable<T>(data, view.id.toString())
         val json = helper.toJson(result)
 
-        reactContext
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
           .emit(eventName, json)
       }
 
+      override fun onCloseButtonClick(view: AdaptyPaywallView) {
+        this.sendEvent(RNAUIModule.onCloseButtonPress, view, null)
+      }
+
+      override fun onLoadingProductsFailure(error: AdaptyError, view: AdaptyPaywallView): Boolean {
+        this.sendEvent(RNAUIModule.onLoadingProductsFailed, view, error)
+        return false
+      }
 
       override fun onPurchaseCanceled(
-        product: AdaptyPaywallProduct,
-        view: AdaptyPaywallView
+        product: AdaptyPaywallProduct, view: AdaptyPaywallView
       ) {
         this.sendEvent(RNAUIModule.onPurchaseCancelled, view, product)
       }
 
       override fun onPurchaseFailure(
-        error: AdaptyError,
-        product: AdaptyPaywallProduct,
-        view: AdaptyPaywallView
+        error: AdaptyError, product: AdaptyPaywallProduct, view: AdaptyPaywallView
       ) {
         this.sendEvent(RNAUIModule.onPurchaseFailed, view, error)
       }
 
       override fun onPurchaseSuccess(
-        profile: AdaptyProfile?,
-        product: AdaptyPaywallProduct,
-        view: AdaptyPaywallView
+        profile: AdaptyProfile?, product: AdaptyPaywallProduct, view: AdaptyPaywallView
       ) {
         this.sendEvent(RNAUIModule.onPurchaseCompleted, view, profile)
       }
@@ -76,14 +78,11 @@ class RNAUIPackage : ReactPackage {
       }
     }
 
-    return listOf(
-      RNAUIModule(
-        reactContext,
-        listener
-      ) { newCount ->
-        listenerCount = newCount
-      }
-    )
+    return listOf(RNAUIModule(
+      reactContext, listener
+    ) { newCount ->
+      listenerCount = newCount
+    })
   }
 
   override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

@@ -42,8 +42,7 @@ class RNAUIModule(
   reactContext: ReactApplicationContext,
   private val eventListener: AdaptyUiEventListener,
   private val changeListenerCount: (newCount: Int) -> Unit,
-) :
-  ReactContextBaseJavaModule(reactContext) {
+) : ReactContextBaseJavaModule(reactContext) {
   var listenerCount = 0
 
   private val paywallControllers = mutableMapOf<String, RNAViewCache>()
@@ -108,12 +107,7 @@ class RNAUIModule(
 
           ctx.activity?.let { activity ->
             val view = AdaptyUI.getPaywallView(
-              activity,
-              paywall,
-              null,
-              config,
-              AdaptyPaywallInsets.NONE,
-              eventListener
+              activity, paywall, null, config, AdaptyPaywallInsets.NONE, eventListener
             )
 
             val cache = RNAViewCache(paywall, null, view, config)
@@ -144,10 +138,7 @@ class RNAUIModule(
     currentActivity?.runOnUiThread {
       parent.addView(cache.view)
       cache.view.showPaywall(
-        cache.paywall,
-        cache.products,
-        cache.config,
-        AdaptyPaywallInsets.NONE
+        cache.paywall, cache.products, cache.config, AdaptyPaywallInsets.NONE
       )
     }
 
