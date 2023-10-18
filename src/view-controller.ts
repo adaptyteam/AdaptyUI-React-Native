@@ -39,6 +39,9 @@ export class ViewController {
     body.set('paywall', JSON.stringify(coder.encode(paywall)));
 
     body.set('prefetch_products', params.prefetchProducts ?? true);
+    if (params.locale) {
+      body.set('locale', params.locale);
+    }
 
     const result = await view.#handle<string>('create_view', body, ctx, log);
 

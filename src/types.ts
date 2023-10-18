@@ -100,6 +100,7 @@ export interface EventHandlers {
    * @param {AdaptyError} error - AdaptyError object with error code and message
    */
   onLoadingProductsFailed: (error: AdaptyError) => EventHandlerResult;
+  onAction: () => void;
 }
 
 /**
@@ -112,6 +113,7 @@ export interface CreatePaywallViewParamsInput {
    * `true` if you want to prefetch products before presenting a paywall view.
    */
   prefetchProducts?: boolean;
+  locale?: string;
 }
 
 export const DEFAULT_EVENT_HANDLERS: Partial<EventHandlers> = {

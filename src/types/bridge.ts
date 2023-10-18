@@ -4,7 +4,12 @@
  * - iOS RNAConstants.ParamKey
  * @internal
  */
-export const ParamKeys = ['paywall', 'prefetch_products', 'view_id'] as const;
+export const ParamKeys = [
+  'paywall',
+  'locale',
+  'prefetch_products',
+  'view_id',
+] as const;
 export type ParamKey = (typeof ParamKeys)[number];
 
 /**
