@@ -85,9 +85,11 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  compileOnly 'io.adapty.internal:crossplatform:2.4.2'
-  implementation 'io.adapty:android-sdk:2.4.3'
-  implementation 'io.adapty:android-ui:1.0.2'
+
+  compileOnly 'io.adapty.internal:crossplatform:[2.7.0, 3.0.0)'
+  implementation 'io.adapty:android-sdk:[2.7.0, 3.0.0)'
+
+  implementation 'io.adapty:android-ui:2.0.1'
 }
 
 if (isNewArchitectureEnabled()) {

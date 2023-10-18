@@ -1,41 +1,22 @@
 import { AdaptyError, AdaptyPaywall } from 'react-native-adapty';
-import { LogContext } from 'react-native-adapty/lib/dist/logger';
-import { AdaptyPaywallCoder } from 'react-native-adapty/lib/dist/internal/coders/AdaptyPaywall';
+import { LogContext, LogScope } from 'react-native-adapty/dist/logger';
+import { AdaptyPaywallCoder } from 'react-native-adapty/dist/coders/adapty-paywall';
+
+import { $bridge, ParamMap } from './bridge';
+import { ViewEmitter } from './view-emitter';
 
 import {
   CreatePaywallViewParamsInput,
   DEFAULT_EVENT_HANDLERS,
   EventHandlers,
 } from './types';
-import { $call, MODULE_ARG_KEYS } from './bridge';
-import { ViewEmitter } from './view-emitter';
+import { MethodName } from './types/bridge';
 
 /**
  * Provides methods to control created paywall view
  * @public
  */
 export class ViewController {
-  private $call = $call;
-  private _id: string | null; // reference to a native view. UUID
-
-  private unsubscribeAllListeners: null | (() => void) = null;
-
-  /**
-   * Since constructors in JS cannot be async, it is not
-   * preferred to create ViewControllers in direct way.
-   * Consider using @link{ViewController.create} instead
-   *
-   * @remarks
-   * Creating ViewController this way does not let you
-   * to make native create request and set _id.
-   * It is intended to avoid usage
-   *
-   * @internal
-   */
-  private constructor() {
-    this._id = null;
-  }
-
   /**
    * Intended way to create a ViewController instance.
    * It prepares a native controller to be presented
@@ -52,22 +33,54 @@ export class ViewController {
 
     const view = new ViewController();
 
-    const encodedPaywall = new AdaptyPaywallCoder(paywall).encode(ctx);
-    const args = {
-      [MODULE_ARG_KEYS.PAYWALL]: JSON.stringify(encodedPaywall),
-      [MODULE_ARG_KEYS.PREFETCH_PRODUCTS]: params.prefetchProducts ?? true,
-    };
+    const body = new ParamMap();
 
+    const coder = new AdaptyPaywallCoder();
+    body.set('paywall', JSON.stringify(coder.encode(paywall)));
+
+    body.set('prefetch_products', params.prefetchProducts ?? true);
+
+    const result = await view.#handle<string>('create_view', body, ctx, log);
+
+    view.#id = result;
+    return view;
+  }
+
+  #id: string | null; // reference to a native view. UUID
+  #unsubscribeAllListeners: null | (() => void) = null;
+
+  /**
+   * Since constructors in JS cannot be async, it is not
+   * preferred to create ViewControllers in direct way.
+   * Consider using @link{ViewController.create} instead
+   *
+   * @remarks
+   * Creating ViewController this way does not let you
+   * to make native create request and set _id.
+   * It is intended to avoid usage
+   *
+   * @internal
+   */
+  private constructor() {
+    this.#id = null;
+  }
+
+  async #handle<T>(
+    method: MethodName,
+    params: ParamMap,
+    ctx: LogContext,
+    log: LogScope,
+  ): Promise<T> {
     try {
-      const result = await view.$call('create_view', args, ctx);
+      const result = await $bridge.request(method, params, ctx);
 
-      view._id = result;
-
-      log.success({ result });
-      return view;
-    } catch (nativeError) {
-      const error = AdaptyError.tryWrap(nativeError);
-
+      log.success(result);
+      return result as T;
+    } catch (error) {
+      /*
+       * Success because error was handled validly
+       * It is a developer task to define which errors must be logged
+       */
       log.success({ error });
       throw error;
     }
@@ -86,25 +99,18 @@ export class ViewController {
     const ctx = new LogContext();
 
     const log = ctx.call({ methodName: 'present' });
-    log.start({ _id: this._id });
+    log.start({ _id: this.#id });
 
-    if (this._id === null) {
+    if (this.#id === null) {
       log.failed({ error: 'no _id' });
       throw this.errNoViewReference();
     }
 
-    const args = { [MODULE_ARG_KEYS.VIEW_ID]: this._id };
+    const body = new ParamMap();
+    body.set('view_id', this.#id);
 
-    try {
-      const result = await this.$call('present_view', args, ctx);
-
-      log.success({ result });
-    } catch (nativeError) {
-      const error = AdaptyError.tryWrap(nativeError);
-
-      log.success({ error });
-      throw error;
-    }
+    const result = await this.#handle<void>('present_view', body, ctx, log);
+    return result;
   }
 
   /**
@@ -116,28 +122,20 @@ export class ViewController {
     const ctx = new LogContext();
 
     const log = ctx.call({ methodName: 'dismiss' });
-    log.start({ _id: this._id });
+    log.start({ _id: this.#id });
 
-    if (this._id === null) {
-      log.failed({ error: 'no _id' });
+    if (this.#id === null) {
+      log.failed({ error: 'no #id' });
       throw this.errNoViewReference();
     }
 
-    const args = { [MODULE_ARG_KEYS.VIEW_ID]: this._id };
+    const body = new ParamMap();
+    body.set('view_id', this.#id);
 
-    try {
-      const result = await this.$call('dismiss_view', args, ctx);
+    await this.#handle<void>('dismiss_view', body, ctx, log);
 
-      if (this.unsubscribeAllListeners) {
-        this.unsubscribeAllListeners();
-      }
-
-      log.success({ result });
-    } catch (nativeError) {
-      const error = AdaptyError.tryWrap(nativeError);
-
-      log.success({ error });
-      throw error;
+    if (this.#unsubscribeAllListeners) {
+      this.#unsubscribeAllListeners();
     }
   }
 
@@ -166,9 +164,9 @@ export class ViewController {
     const ctx = new LogContext();
 
     const log = ctx.call({ methodName: 'registerEventHandlers' });
-    log.start({ _id: this._id });
+    log.start({ _id: this.#id });
 
-    if (this._id === null) {
+    if (this.#id === null) {
       throw this.errNoViewReference();
     }
 
@@ -183,7 +181,7 @@ export class ViewController {
       return () => {};
     }
 
-    const viewEmitter = new ViewEmitter(this._id);
+    const viewEmitter = new ViewEmitter(this.#id);
 
     Object.keys(finalEventHandlers).forEach(eventStr => {
       const event = eventStr as keyof EventHandlers;
@@ -202,7 +200,7 @@ export class ViewController {
     const unsubscribe = () => viewEmitter.removeAllListeners();
 
     // expose to class to be able to unsubscribe on dismiss
-    this.unsubscribeAllListeners = unsubscribe;
+    this.#unsubscribeAllListeners = unsubscribe;
 
     return unsubscribe;
   }

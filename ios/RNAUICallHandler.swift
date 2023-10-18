@@ -41,6 +41,11 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         ]
     }
     
+    override func constantsToExport() -> [AnyHashable : Any]! {
+        // Name of the function that routes all incoming requests
+        return ["HANDLER": "handle"]
+    }
+    
     // MARK: - Private API
     
     // Do not send events to JS, when JS does not expect
@@ -59,8 +64,12 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return
         }
         
-        // could not infer generic type?
-        let respData = Viewable.init(payload: nil as AdaptyProfile?, view: view)
+        let result = AdaptyResult(
+            data: NullEncodable(),
+            type: "null",
+            view: view
+        )
+        
         guard let bytes = try? AdaptyContext.jsonEncoder.encode(respData),
               let dataStr = String(data: bytes, encoding: .utf8)
         else {
@@ -252,7 +261,6 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                                   didFailRenderingWith error: AdaptyError) {
         self.pushEvent(EventName.onRenderingFailed, view: controller, data: error)
     }
-    
     
     /// LOAD PRODUCTS FAILED
     public func paywallController(_ controller: AdaptyPaywallController,
