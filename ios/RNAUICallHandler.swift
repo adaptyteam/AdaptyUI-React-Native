@@ -1,7 +1,7 @@
 import Foundation
 import Adapty
 import AdaptyUI
-import react_native_adapty
+import react_native_adapty_sdk
 
 extension UIViewController {
     var isOrContainsAdaptyController: Bool {
@@ -15,7 +15,6 @@ extension UIViewController {
 
 @objc(RNAUICallHandler)
 class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
-    
     // MARK: - Config
     
     private var paywallControllers = [UUID: AdaptyPaywallController]()
@@ -64,20 +63,19 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return
         }
         
-        let result = AdaptyResult(
-            data: NullEncodable(),
-            type: "null",
+        let result = AdaptyViewResult(
+            adaptyResult: AdaptyResult(data: NullEncodable(), type: "null"),
             view: view
         )
         
-        guard let bytes = try? AdaptyContext.jsonEncoder.encode(respData),
-              let dataStr = String(data: bytes, encoding: .utf8)
+        
+        guard let str = try? AdaptyContext.encodeToJSON(result)
         else {
             // TODO: Should not happen
             return self.pushEvent(event, view: view)
         }
         
-        self.sendEvent(withName: event.rawValue, body: dataStr)
+        self.sendEvent(withName: event.rawValue, body: str)
     }
     
     /// Sends event to JS layer if client has listeners
@@ -86,16 +84,19 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return
         }
         
-        let respData = Viewable.init(payload: data, view: view)
         
-        guard let bytes = try? AdaptyContext.jsonEncoder.encode(respData),
-              let dataStr = String(data: bytes, encoding: .utf8)
-        else {
+        let result = AdaptyViewResult(
+            adaptyResult: AdaptyResult(data: data, type: String(describing: T.self)),
+            view: view
+        )
+        
+        guard let str = try? AdaptyContext.encodeToJSON(result) else {
+            
             // TODO: Should not happen
             return self.pushEvent(event, view: view)
         }
         
-        self.sendEvent(withName: event.rawValue, body: dataStr)
+        self.sendEvent(withName: event.rawValue, body: str)
     }
     
     private func cachePaywallController(_ controller: AdaptyPaywallController, id: UUID) {
@@ -112,27 +113,29 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         return paywallControllers[uuid]
     }
     
-    private func getConfigurationAndCreateView(ctx: AdaptyContext,
-                                               paywall: AdaptyPaywall,
-                                               preloadProducts: Bool,
-                                               productsTitlesResolver: ((AdaptyProduct) -> String)?
+    private func getConfigurationAndCreateView(
+        ctx: AdaptyContext,
+        paywall: AdaptyPaywall,
+        locale: String?,
+        preloadProducts: Bool,
+        productsTitlesResolver: ((AdaptyProduct) -> String)?
     ) {
-        AdaptyUI.getViewConfiguration(forPaywall: paywall) { result in
+        AdaptyUI.getViewConfiguration(forPaywall: paywall, locale: locale ?? "en") { result in
             switch result {
             case let .failure(error):
-                return ctx.err(error)
+                return ctx.forwardError(error)
                 
             case let .success(config):
-                let vc = AdaptyUI.paywallController(for: paywall,
-                                                    products: nil,
-                                                    viewConfiguration: config,
-                                                    delegate: self
-                                                    // productsTitlesResolver: productsTitlesResolver,
+                let vc = AdaptyUI.paywallController(
+                    for: paywall,
+                    products: nil,
+                    viewConfiguration: config,
+                    delegate: self
                 )
                 
                 self.cachePaywallController(vc, id: vc.id)
                 
-                return ctx.resolver(vc.id.uuidString)
+                return ctx.resolve(with: vc.id.uuidString)
             }
         }
     }
@@ -145,59 +148,70 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         resolver: @escaping RCTPromiseResolveBlock,
         rejecter: @escaping RCTPromiseRejectBlock
     ) {
-        let ctx = AdaptyContext(args: args, resolver: resolver, rejecter: rejecter)
+        let ctx = AdaptyContext(
+            args: args,
+            resolver: resolver,
+            rejecter: rejecter
+        )
         
-        switch MethodName(rawValue: method as String) ?? .notImplemented {
-        case .createView: handleCreateView(ctx)
-        case .presentView: handlePresentView(ctx)
-        case .dismissView: handleDismissView(ctx)
-        default: handleNotImplemented(ctx)
+        do {
+            switch MethodName(rawValue: method as String) ?? .notImplemented {
+            case .createView:  try handleCreateView(ctx)
+            case .presentView: try handlePresentView(ctx)
+            case .dismissView: try handleDismissView(ctx)
+                
+            default: throw BridgeError.methodNotImplemented
+            }
+        } catch {
+            ctx.bridgeError(error)
         }
     }
     
-    private func handleCreateView(_ ctx: AdaptyContext) {
-        guard let paywallString = ctx.args[Const.PAYWALL] as? String,
-              let paywallData = paywallString.data(using: .utf8),
-              let paywall = try? AdaptyContext.jsonDecoder.decode(AdaptyPaywall.self, from: paywallData) else {
-            return ctx.argNotFound(name: Const.PAYWALL)
+    private func handleCreateView(_ ctx: AdaptyContext) throws {
+        let paywallStr: String = try ctx.params.getRequiredValue(for: .paywall)
+        let preloadProducts: Bool? = ctx.params.getOptionalValue(for: .prefetch_products)
+        let productTitles: [String: String]? = ctx.params.getOptionalValue(for: .productIds)
+        let locale: String? = ctx.params.getOptionalValue(for: .locale)
+        
+        guard let paywallData = paywallStr.data(using: .utf8),
+              let paywall = try? AdaptyContext.jsonDecoder.decode(AdaptyPaywall.self, from: paywallData)
+        else {
+            throw BridgeError.typeMismatch(name: .paywall, type: "String")
         }
         
-        let preloadProducts = ctx.args[Const.PREFETCH_PRODUCTS] as? Bool ?? false
-        let productsTitles = ctx.args[Const.PRODUCTS_TITLES] as? [String: String]
         
         getConfigurationAndCreateView(
             ctx: ctx,
             paywall: paywall,
-            preloadProducts: preloadProducts,
-            productsTitlesResolver: { productsTitles?[$0.vendorProductId] ?? $0.localizedTitle }
+            locale: locale,
+            preloadProducts: preloadProducts ?? false,
+            productsTitlesResolver: { productTitles?[$0.vendorProductId] ?? $0.localizedTitle }
         )
     }
     
-    private func handlePresentView(_ ctx: AdaptyContext) {
-        guard let id = ctx.args[Const.VIEW_ID] as? String else {
-            return ctx.argNotFound(name: Const.VIEW_ID)
-        }
+    private func handlePresentView(_ ctx: AdaptyContext) throws {
+        let id: String = try ctx.params.getRequiredValue(for: .view_id)
         
         guard let vc = cachedPaywallController(id) else {
-            //            let error = AdaptyError(AdaptyUIFlutterError.viewNotFound(id))
-            //            flutterCall.callAdaptyError(flutterResult, error: error)
-            return ctx.notImplemented()
+            throw BridgeError.typeMismatch(name: .view_id, type: "Failed to find cached view controller")
         }
         
         
         DispatchQueue.main.async {
+            vc.modalPresentationCapturesStatusBarAppearance = true
             vc.modalPresentationStyle = .overFullScreen
             
             guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
-                //            let error = AdaptyError(AdaptyUIFlutterError.viewPresentationError(id))
-                //            flutterCall.callAdaptyError(flutterResult, error: error)
-                return ctx.notImplemented()
+                return ctx.bridgeError(
+                    BridgeError.typeMismatch(name: .view_id, type: "Failed to find root view controller")
+                )
+                
             }
             
             guard !rootVC.isOrContainsAdaptyController else {
-                //            let error = AdaptyError(AdaptyUIFlutterError.viewAlreadyPresented(id))
-                //            flutterCall.callAdaptyError(flutterResult, error: error)
-                return ctx.notImplemented()
+                return ctx.bridgeError(
+                    BridgeError.typeMismatch(name: .view_id, type: "View already presented")
+                )
             }
             
             rootVC.present(vc, animated: true) {
@@ -206,15 +220,14 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         }
     }
     
-    private func handleDismissView(_ ctx: AdaptyContext) {
-        guard let id = ctx.args[Const.VIEW_ID] as? String else {
-            return ctx.argNotFound(name: Const.VIEW_ID)
-        }
+    private func handleDismissView(_ ctx: AdaptyContext) throws {
+        let id: String = try ctx.params.getRequiredValue(for: .view_id)
         
         guard let vc = cachedPaywallController(id) else {
-            //            let error = AdaptyError(AdaptyUIFlutterError.viewNotFound(id))
-            //            flutterCall.callAdaptyError(flutterResult, error: error)
-            return ctx.argNotFound(name: "a")
+            throw BridgeError.typeMismatch(
+                name: .view_id,
+                type: "Failed to find cached view controller"
+            )
         }
         
         DispatchQueue.main.async {
@@ -226,11 +239,10 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         }
     }
     
-    private func handleNotImplemented(_ ctx: AdaptyContext) {
-        return ctx.notImplemented()
-    }
-    
     // MARK: - Event Handlers
+    func paywallController(_ controller: AdaptyPaywallController, didPerform action: AdaptyUI.Action) {
+        self.pushEvent(EventName.onRestoreFailed, view: controller)
+    }
     
     /// CLOSE BUTTON
     public func paywallControllerDidPressCloseButton(_ controller: AdaptyPaywallController) {
@@ -264,11 +276,10 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     /// LOAD PRODUCTS FAILED
     public func paywallController(_ controller: AdaptyPaywallController,
-                                  didFailLoadingProductsWith policy: AdaptyProductsFetchPolicy,
-                                  error: AdaptyError) -> Bool {
+                                  didFailLoadingProductsWith error: AdaptyError) -> Bool {
         self.pushEvent(EventName.onLoadingProductsFailed, view: controller, data: error)
         
-        return policy == .default
+        return true
     }
     
     /// PURCHASE FAILED

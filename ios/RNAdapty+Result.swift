@@ -1,23 +1,19 @@
 import Foundation
 import AdaptyUI
+import react_native_adapty_sdk
 
+struct AdaptyViewResult<T: Encodable>: Encodable {
+    var adaptyResult: AdaptyResult<T>
+    var view: AdaptyPaywallController
 
-extension AdaptyViewResult<T: Encodable>: Encodable {
-    public let data: T
-    public let type: String
-    public let view: AdaptyPaywallController
-    
-    enum CodingKeys: String, CodingKey {
-        case data
-        case type
-        case viewId = "view_id"
-    }
-    
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(data, forKey: .data)
-        try container.encode(type, forKey: .type)
-        try container.encode(view.toView().id, forKey: .viewId)
+        try container.encode(adaptyResult.data, forKey: .data)
+        try container.encode(adaptyResult.type, forKey: .type)
+        try container.encode(view.toView().id, forKey: .view)
     }
-    
+
+    enum CodingKeys: String, CodingKey {
+        case data, type, view
+    }
 }
