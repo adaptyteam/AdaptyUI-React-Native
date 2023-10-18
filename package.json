@@ -39,6 +39,7 @@
   "main": "dist/index.js",
   "packageManager": "yarn@1.22.19",
   "scripts": {
+    "build": "tsc",
     "test": "jest",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "release": "release-it"
