@@ -37,6 +37,9 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             EventName.onRestoreFailed.rawValue,
             EventName.onRenderingFailed.rawValue,
             EventName.onLoadingProductsFailed.rawValue,
+            EventName.onAction.rawValue,
+            EventName.onCustomEvent.rawValue,
+            EventName.onUrlPress.rawValue,
         ]
     }
     
@@ -68,7 +71,6 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             view: view
         )
         
-        
         guard let str = try? AdaptyContext.encodeToJSON(result)
         else {
             // TODO: Should not happen
@@ -84,14 +86,12 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             return
         }
         
-        
         let result = AdaptyViewResult(
             adaptyResult: AdaptyResult(data: data, type: String(describing: T.self)),
             view: view
         )
         
         guard let str = try? AdaptyContext.encodeToJSON(result) else {
-            
             // TODO: Should not happen
             return self.pushEvent(event, view: view)
         }
@@ -241,13 +241,22 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     // MARK: - Event Handlers
     func paywallController(_ controller: AdaptyPaywallController, didPerform action: AdaptyUI.Action) {
-        self.pushEvent(EventName.onRestoreFailed, view: controller)
+        self.pushEvent(EventName.onAction, view: controller)
+        switch action {
+        case .close:
+            self.pushEvent(EventName.onCloseButtonPress, view: controller)
+            break
+        case let .openURL(url):
+            self.pushEvent(.onUrlPress, view: controller, data: url.absoluteString)
+            UIApplication.shared.open(url, options: [:])
+            break
+        case let .custom(id):
+            self.pushEvent(.onCustomEvent, view: controller, data: id)
+            break
+            
+        }
     }
     
-    /// CLOSE BUTTON
-    public func paywallControllerDidPressCloseButton(_ controller: AdaptyPaywallController) {
-        self.pushEvent(EventName.onCloseButtonPress, view: controller)
-    }
     
     /// PRODUCT SELECTED
     public func paywallController(_ controller: AdaptyPaywallController,

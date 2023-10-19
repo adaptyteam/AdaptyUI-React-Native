@@ -25,7 +25,7 @@
     "!ios/build",
     "!ios/ReactNativeUi.xcodeproj/project.xcworkspace",
     "!ios/ReactNativeUi.xcodeproj/xcuserdata",
-    "adapty-react-native-ui.podspec",
+    "*.podspec",
     "android",
     "!android/build",
     "!android/gradle",

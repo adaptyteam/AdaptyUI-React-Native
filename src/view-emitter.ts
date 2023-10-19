@@ -36,49 +36,22 @@ export class ViewEmitter {
     // Native layer emits callbacks with serialized args
     // This function deserializes & decodes args
     // All native callbacks are expected to return only 1 arg
-    return $bridge.addRawEventListener(event, arg => {
-      arg;
-      callback(this.#viewId as any);
-      onRequestClose();
-      // const ctx = this.#ctx;
-      // const log = ctx.event({ methodName: event });
-      // log.start(arg);
-      // // all events are expected to return JSON with view-id
-      // if (typeof arg !== 'string') {
-      //   // TODO: custom error
-      //   throw new Error('unknown view');
-      // }
-      // let json: object | null = null;
-      // try {
-      //   json = JSON.parse(arg);
-      // } catch (error) {
-      //   throw error;
-      // }
-      // if (json === null || !(KEY_VIEW in json)) {
-      //   // TODO: custom error
-      //   throw new Error('unknown view');
-      // }
-      // const viewId = json[KEY_VIEW];
-      // if (this.#viewId !== viewId) {
-      //   log.success({ skipped: true, _id: this.#viewId, argument: arg });
-      //   return;
-      // }
-      // let payload: object | null = null;
-      // if (DATA_KEY in json) {
-      //   const maybePayload = json[DATA_KEY];
-      //   // object | null are valid
-      //   if (typeof maybePayload !== 'object') {
-      //     // TODO: custom error
-      //     throw new Error('unexpected payload');
-      //   }
-      //   payload = maybePayload;
-      // }
-      // const result = decodeCallbackArgument(event, payload);
-      // const cb = callback as (arg: typeof result) => boolean;
-      // const closeRequest = cb.apply(null, [result]);
-      // if (closeRequest) {
-      //   onRequestClose();
-      // }
+    const viewId = this.#viewId;
+    callback;
+
+    return $bridge.addEventListener(event, function (arg) {
+      console.log(`[UIEVENT]: ${event}; \n\targ: ${arg}; \n\t`);
+      const eventView = this.rawValue['view'] ?? null;
+      if (viewId !== eventView) {
+        return;
+      }
+      const cb = callback as (argument: typeof arg) => boolean;
+
+      const shouldClose = cb.apply(null, [arg]);
+
+      if (shouldClose) {
+        onRequestClose();
+      }
     });
   }
 

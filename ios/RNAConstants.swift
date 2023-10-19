@@ -12,6 +12,8 @@ enum EventName: String {
     case onRenderingFailed = "onRenderingFailed"
     case onLoadingProductsFailed = "onLoadingProductsFailed"
     case onAction = "onAction"
+    case onCustomEvent = "onCustomEvent"
+    case onUrlPress = "onUrlPress"
 }
 
 enum MethodName: String {

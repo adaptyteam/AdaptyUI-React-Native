@@ -100,7 +100,9 @@ export interface EventHandlers {
    * @param {AdaptyError} error - AdaptyError object with error code and message
    */
   onLoadingProductsFailed: (error: AdaptyError) => EventHandlerResult;
-  onAction: () => void;
+  onAction: (action: any) => EventHandlerResult;
+  onCustomEvent: (id: string) => EventHandlerResult;
+  onUrlPress: (url: string) => EventHandlerResult;
 }
 
 /**
