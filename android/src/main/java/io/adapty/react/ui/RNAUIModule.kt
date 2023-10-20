@@ -1,197 +1,189 @@
 package io.adapty.react.ui
 
-import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.util.Log
-import android.view.View
-import android.view.ViewGroup
-import com.adapty.Adapty
-import com.adapty.internal.crossplatform.CrossplatformHelper
-import com.adapty.internal.crossplatform.CrossplatformName
-import com.adapty.internal.crossplatform.MetaInfo
+import com.adapty.errors.AdaptyError
+import com.adapty.internal.crossplatform.ui.AdaptyUiView
+import com.adapty.internal.crossplatform.ui.CrossplatformUiHelper
 import com.adapty.models.AdaptyPaywall
-import com.adapty.ui.AdaptyPaywallInsets
+import com.adapty.models.AdaptyPaywallProduct
+import com.adapty.models.AdaptyProfile
 import com.adapty.ui.AdaptyUI
-import com.adapty.utils.AdaptyResult
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import androidx.core.graphics.Insets
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.adapty.errors.AdaptyError
-import com.adapty.models.AdaptyPaywallProduct
-import com.adapty.models.AdaptyProfile
-import com.adapty.ui.AdaptyPaywallView
-import com.adapty.ui.listeners.AdaptyUiDefaultEventListener
-import com.adapty.ui.listeners.AdaptyUiEventListener
-import java.util.EventListener
+import io.adapty.react.ui.PaywallEvent.*
 
-fun View.onReceiveSystemBarsInsets(action: (insets: Insets) -> Unit) {
-  ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
-    val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJavaModule(ctx) {
+  private val helper = CrossplatformUiHelper.shared
+  private val subscribedEventsCount: HashMap<String, Int> = HashMap()
+  private var listenerCount = 0
 
-    ViewCompat.setOnApplyWindowInsetsListener(this, null)
-    action(systemBarInsets)
-    insets
-  }
-}
-
-class RNAUIModule(
-  reactContext: ReactApplicationContext,
-  private val eventListener: AdaptyUiEventListener,
-  private val changeListenerCount: (newCount: Int) -> Unit,
-) : ReactContextBaseJavaModule(reactContext) {
-  var listenerCount = 0
-
-  private val paywallControllers = mutableMapOf<String, RNAViewCache>()
-
-  private val helper =
-    CrossplatformHelper.create(MetaInfo.from(CrossplatformName.REACT_NATIVE, "ui.1"))
 
   override fun getName(): String {
-    return NAME
+    return "RNAUICallHandler"
   }
 
-  private fun cachePaywallController(controller: RNAViewCache, id: String) {
-    paywallControllers[id] = controller
-  }
-
-  private fun deleteCachedPaywallController(id: String) {
-    paywallControllers.remove(id)
-  }
-
-  private fun cachedPaywallController(id: String): RNAViewCache? {
-    return paywallControllers[id]
+  override fun getConstants(): MutableMap<String, Any>? {
+    // Name of the function that routes all incoming calls
+    return hashMapOf("HANDLER" to "handle")
   }
 
   @ReactMethod
   fun addListener(eventName: String?) {
+    eventName?.let { event ->
+      val count = subscribedEventsCount[event] ?: 0
+      subscribedEventsCount[event] = count + 1
+    }
     listenerCount += 1
-    changeListenerCount(listenerCount)
+
+    if (listenerCount == 1) {
+      listenPaywallEvents()
+    }
   }
 
   @ReactMethod
   fun removeListeners(count: Int?) {
-    listenerCount -= 1
-    changeListenerCount(listenerCount)
+    subscribedEventsCount.clear()
+  }
+
+  private inline fun <reified T : Any> sendEvent(
+    eventName: EventName,
+    params: T?,
+    view: String
+  ) {
     if (listenerCount == 0) {
       return
+    }
+
+    val result = params?.let {   AdaptyBridgeResult(
+      params,
+      T::class.simpleName ?: "Any",
+      view
+    ) } ?: AdaptyBridgeResult(NullEncodable(), "null", view)
+
+    val receiver = ctx.getJSModule(
+      DeviceEventManagerModule.RCTDeviceEventEmitter::class.java
+    )
+
+    receiver.emit(
+      eventName.value,
+      result.let(helper.serialization::toJson)
+    )
+  }
+
+  private fun listenPaywallEvents() {
+    helper.uiEventsObserver = { event ->
+      val view = event.data["view"] as AdaptyUiView
+
+      when (PaywallEvent.fromString(event.name)) {
+        DID_SELECT_PRODUCTS -> {
+          val product = event.data["product"] as AdaptyPaywallProduct
+          sendEvent(EventName.ON_PRODUCT_SELECTED, product, view.id)
+        }
+        DID_START_PURCHASE -> {
+          val product = event.data["product"] as AdaptyPaywallProduct
+          sendEvent(EventName.ON_PURCHASE_STARTED, product, view.id)
+        }
+        DID_CANCEL_PURCHASE -> {
+          val product = event.data["product"] as AdaptyPaywallProduct
+          sendEvent(EventName.ON_PURCHASE_CANCELLED, product, view.id)
+        }
+        DID_FINISH_PURCHASE -> {
+          val profile = event.data["profile"] as AdaptyProfile
+          sendEvent(EventName.ON_PURCHASE_COMPLETED, profile, view.id)
+        }
+        DID_FAIL_PURCHASE -> {
+          val error = event.data["error"] as AdaptyError
+          sendEvent(EventName.ON_PURCHASE_FAILED, error, view.id)
+        }
+        DID_FINISH_RESTORE -> {
+          val profile = event.data["profile"] as AdaptyProfile
+          sendEvent(EventName.ON_RESTORE_COMPLETED, profile, view.id)
+        }
+        DID_FAIL_RESTORE -> {
+          val error = event.data["error"] as AdaptyError
+          sendEvent(EventName.ON_RESTORE_FAILED, error, view.id)
+        }
+        DID_FAIL_RENDERING -> {
+          val error = event.data["error"] as AdaptyError
+          sendEvent(EventName.ON_RENDERING_FAILED, error, view.id)
+        }
+        DID_FAIL_LOADING_PRODUCTS -> {
+          val error = event.data["error"] as AdaptyError
+          sendEvent(EventName.ON_LOADING_PRODUCTS_FAILED, error, view.id)
+        }
+        DID_PERFORM_ACTION -> {
+
+          when (val action = event.data["action"] as AdaptyUI.Action) {
+            is AdaptyUI.Action.Close -> sendEvent(EventName.ON_CLOSE_BUTTON_PRESS,null, view.id)
+            is AdaptyUI.Action.Custom -> {
+              sendEvent(EventName.ON_CUSTOM_EVENT, action.customId, view.id)
+            }
+            is AdaptyUI.Action.OpenUrl -> {
+              sendEvent(EventName.ON_URL_PRESS, action.url, view.id)
+            }
+          }
+        }
+
+        null -> {}
+      }
     }
   }
 
   @ReactMethod
   fun handle(methodName: String, args: ReadableMap, promise: Promise) {
-    val ctx = RNAContext(methodName, args, promise, helper, currentActivity)
+    helper.activity = currentActivity
+    val ctx = AdaptyContext(methodName, args, promise)
 
-    when (ctx.method) {
-      CREATE_VIEW -> handleCreateView(ctx)
-      PRESENT_VIEW -> handlePresentView(ctx)
-      DISMISS_VIEW -> handleDismissView(ctx)
-      else -> ctx.notImplemented()
-    }
-  }
+    try {
+      when (ctx.methodName) {
+        MethodName.CREATE_VIEW -> handleCreateView(ctx)
+        MethodName.PRESENT_VIEW -> handlePresentView(ctx)
+        MethodName.DISMISS_VIEW -> handleDismissView(ctx)
 
-
-  private fun handleCreateView(ctx: RNAContext) {
-    val paywall = ctx.parseJsonArgument<AdaptyPaywall>(PAYWALL) ?: kotlin.run {
-      return ctx.argNotFound(PAYWALL)
-    }
-
-    Adapty.getViewConfiguration(paywall) { result ->
-      when (result) {
-        is AdaptyResult.Error -> ctx.err(result.error)
-        is AdaptyResult.Success -> {
-          val config = result.value
-
-          ctx.activity?.let { activity ->
-            val view = AdaptyUI.getPaywallView(
-              activity, paywall, null, config, AdaptyPaywallInsets.NONE, eventListener
-            )
-
-            val cache = RNAViewCache(paywall, null, view, config)
-
-            this.cachePaywallController(cache, cache.id)
-            return@getViewConfiguration ctx.success(cache.id)
-          }
-        }
+        else -> throw BridgeError.MethodNotImplemented
       }
-
+    } catch (error: Error) {
+      ctx.bridgeError(error, "")
     }
   }
 
-  private fun handlePresentView(ctx: RNAContext) {
-    val id = ctx.args.getString(VIEW_ID) ?: kotlin.run {
-      return ctx.argNotFound(VIEW_ID)
-    }
+  private fun handleCreateView(ctx: AdaptyContext) {
+    val paywall: AdaptyPaywall = ctx.params.getDecodedValue(
+      ParamKey.PAYWALL,
+    )
+    val locale: String? = ctx.params.getOptionalValue(ParamKey.LOCALE)
+    val preloadProducts: Boolean = ctx.params.getOptionalValue(ParamKey.PREFETCH_PRODUCTS) ?: false
+    val personalizedOffers: HashMap<String, Boolean>? = ctx.params.getOptionalValue(ParamKey.PRODUCT_TITLES)
 
-    val cache = this.cachedPaywallController(id) ?: kotlin.run {
-      return ctx.argNotFound(VIEW_ID)
-    }
 
-
-    val parent = currentActivity?.findViewById<ViewGroup>(android.R.id.content) ?: kotlin.run {
-      return ctx.argNotFound("parent")
-    }
-
-    currentActivity?.runOnUiThread {
-      parent.addView(cache.view)
-      cache.view.showPaywall(
-        cache.paywall, cache.products, cache.config, AdaptyPaywallInsets.NONE
-      )
-    }
-
-    return ctx.success(null)
+    helper.handleCreateView(
+      paywall,
+      locale ?: "en",
+      preloadProducts,
+      personalizedOffers,
+      { jsonView ->
+        ctx.resolve(jsonView.id, "") },
+      { error -> ctx.forwardError(error, "") }
+    )
   }
 
+  private fun handlePresentView(ctx: AdaptyContext) {
+    val id: String = ctx.params.getRequiredValue(ParamKey.VIEW_ID)
 
-  //            cache.view.onReceiveSystemBarsInsets { insets ->
-//                val paywallInsets = AdaptyPaywallInsets.of(insets.top, insets.bottom)
-//                cache.view.showPaywall(cache.paywall, cache.products, cache.config, paywallInsets)
-//            }
-
-  private fun handleDismissView(ctx: RNAContext) {
-    val id = ctx.args.getString(VIEW_ID) ?: kotlin.run {
-      return ctx.argNotFound(VIEW_ID)
-    }
-
-    val cache = this.cachedPaywallController(id) ?: kotlin.run {
-      return ctx.argNotFound(VIEW_ID)
-    }
-
-
-    currentActivity?.runOnUiThread {
-      cache.view.visibility = View.GONE
-      this.deleteCachedPaywallController(cache.id)
-    }
-
-    return ctx.success(null)
+    helper.handlePresentView(
+      id,
+      { ctx.resovle(id) },
+      { error -> ctx.uiError(error, "") },
+    )
   }
 
-  companion object {
-    const val NAME = "RNAUICallHandler"
+  private fun handleDismissView(ctx: AdaptyContext) {
+    val id: String = ctx.params.getRequiredValue(ParamKey.VIEW_ID)
 
-    // methods
-    const val PRESENT_VIEW = "present_view"
-    const val CREATE_VIEW = "create_view"
-    const val DISMISS_VIEW = "dismiss_view"
-
-    // params
-    const val PAYWALL = "paywall"
-    const val VIEW_ID = "view_id"
-
-    // Events
-    const val onCloseButtonPress = "onCloseButtonPress"
-    const val onProductSelected = "onProductSelected"
-    const val onPurchaseStarted = "onPurchaseStarted"
-    const val onPurchaseCancelled = "onPurchaseCancelled"
-    const val onPurchaseCompleted = "onPurchaseCompleted"
-    const val onPurchaseFailed = "onPurchaseFailed"
-    const val onRestoreCompleted = "onRestoreCompleted"
-    const val onRestoreFailed = "onRestoreFailed"
-    const val onRenderingFailed = "onRenderingFailed"
-    const val onLoadingProductsFailed = "onLoadingProductsFailed"
-
+    helper.handleDismissView(
+      id,
+      { ctx.resovle(id) },
+      { error -> ctx.uiError(error, id) },
+    )
   }
 }
