@@ -1,4 +1,8 @@
-import type { AdaptyProfile, AdaptyError } from 'react-native-adapty';
+import type {
+  AdaptyProfile,
+  AdaptyError,
+  AdaptyPaywallProduct,
+} from 'react-native-adapty';
 
 export type ArgType<T> = T extends () => any
   ? void
@@ -33,19 +37,19 @@ export interface EventHandlers {
    *
    * If you return `true` from this callback, the paywall view will be closed.
    */
-  onProductSelected: () => EventHandlerResult;
+  onProductSelected: (product: AdaptyPaywallProduct) => EventHandlerResult;
   /**
    * Called when a user taps the purchase button in the paywall view
    *
    * If you return `true` from this callback, the paywall view will be closed.
    */
-  onPurchaseStarted: () => EventHandlerResult;
+  onPurchaseStarted: (product: AdaptyPaywallProduct) => EventHandlerResult;
   /**
    * Called if a user cancels the purchase
    *
    * If you return `true` from this callback, the paywall view will be closed.
    */
-  onPurchaseCancelled: () => EventHandlerResult;
+  onPurchaseCancelled: (product: AdaptyPaywallProduct) => EventHandlerResult;
   /**
    * Called when a purchase is completed
    *

@@ -40,7 +40,6 @@ export class ViewEmitter {
     callback;
 
     return $bridge.addEventListener(event, function (arg) {
-      console.log(`[UIEVENT]: ${event}; \n\targ: ${arg}; \n\t`);
       const eventView = this.rawValue['view'] ?? null;
       if (viewId !== eventView) {
         return;
