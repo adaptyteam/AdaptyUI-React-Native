@@ -52,6 +52,19 @@ android {
     debug {
       minifyEnabled false
     }
+    libDebug {
+      initWith buildTypes.debug
+      versionNameSuffix "-lib-debug"
+      repositories {
+        google()
+        // Adapty helper library
+        maven { url "$rootDir/localMaven" }
+        maven { url "$rootDir/internalMaven" }
+      }
+
+      matchingFallbacks = ["debug"]
+      debuggable true
+    }
   }
 
   lintOptions {
@@ -69,12 +82,19 @@ rootProject.allprojects {
     maven {
       url "$rootDir/../node_modules/react-native-adapty/lib/android/localMaven"
     }
+    maven {
+      url "$rootDir/../node_modules/@adapty/react-native-ui/android/localMaven"
+    }
   }
 }
+
 
 repositories {
   mavenCentral()
   google()
+  maven { url "$rootDir/../node_modules/react-native/android" }
+  maven { url "$rootDir/../node_modules/react-native-adapty/lib/android/localMaven" }
+  maven { url "$rootDir/../node_modules/@adapty/react-native-ui/android/localMaven" }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -86,8 +106,9 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  compileOnly 'io.adapty.internal:crossplatform:[2.7.0, 3.0.0)'
-  implementation 'io.adapty:android-sdk:[2.7.0, 3.0.0)'
+  compileOnly 'io.adapty:android-sdk:2.7.0'
+  compileOnly 'io.adapty.internal:crossplatform:2.7.0'
+  implementation 'io.adapty.internal:crossplatform-ui:2.0.1'
 
   implementation 'io.adapty:android-ui:2.0.1'
 }
