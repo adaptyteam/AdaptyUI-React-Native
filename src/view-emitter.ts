@@ -21,10 +21,10 @@ type EventName = keyof EventHandlers;
  * @internal
  */
 export class ViewEmitter {
-  #viewId: string;
+  private viewId: string;
 
   constructor(viewId: string) {
-    this.#viewId = viewId;
+    this.viewId = viewId;
     $bridge.addEventListener;
   }
 
@@ -36,7 +36,7 @@ export class ViewEmitter {
     // Native layer emits callbacks with serialized args
     // This function deserializes & decodes args
     // All native callbacks are expected to return only 1 arg
-    const viewId = this.#viewId;
+    const viewId = this.viewId;
     callback;
 
     return $bridge.addEventListener(event, function (arg) {

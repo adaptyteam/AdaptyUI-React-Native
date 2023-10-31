@@ -43,14 +43,14 @@ export class ViewController {
       body.set('locale', params.locale);
     }
 
-    const result = await view.#handle<string>('create_view', body, ctx, log);
+    const result = await view.handle<string>('create_view', body, ctx, log);
 
-    view.#id = result;
+    view.id = result;
     return view;
   }
 
-  #id: string | null; // reference to a native view. UUID
-  #unsubscribeAllListeners: null | (() => void) = null;
+  private id: string | null; // reference to a native view. UUID
+  private unsubscribeAllListeners: null | (() => void) = null;
 
   /**
    * Since constructors in JS cannot be async, it is not
@@ -65,10 +65,10 @@ export class ViewController {
    * @internal
    */
   private constructor() {
-    this.#id = null;
+    this.id = null;
   }
 
-  async #handle<T>(
+  private async handle<T>(
     method: MethodName,
     params: ParamMap,
     ctx: LogContext,
@@ -102,17 +102,17 @@ export class ViewController {
     const ctx = new LogContext();
 
     const log = ctx.call({ methodName: 'present' });
-    log.start({ _id: this.#id });
+    log.start({ _id: this.id });
 
-    if (this.#id === null) {
+    if (this.id === null) {
       log.failed({ error: 'no _id' });
       throw this.errNoViewReference();
     }
 
     const body = new ParamMap();
-    body.set('view_id', this.#id);
+    body.set('view_id', this.id);
 
-    const result = await this.#handle<void>('present_view', body, ctx, log);
+    const result = await this.handle<void>('present_view', body, ctx, log);
     return result;
   }
 
@@ -125,20 +125,20 @@ export class ViewController {
     const ctx = new LogContext();
 
     const log = ctx.call({ methodName: 'dismiss' });
-    log.start({ _id: this.#id });
+    log.start({ _id: this.id });
 
-    if (this.#id === null) {
-      log.failed({ error: 'no #id' });
+    if (this.id === null) {
+      log.failed({ error: 'no id' });
       throw this.errNoViewReference();
     }
 
     const body = new ParamMap();
-    body.set('view_id', this.#id);
+    body.set('view_id', this.id);
 
-    await this.#handle<void>('dismiss_view', body, ctx, log);
+    await this.handle<void>('dismiss_view', body, ctx, log);
 
-    if (this.#unsubscribeAllListeners) {
-      this.#unsubscribeAllListeners();
+    if (this.unsubscribeAllListeners) {
+      this.unsubscribeAllListeners();
     }
   }
 
@@ -167,9 +167,9 @@ export class ViewController {
     const ctx = new LogContext();
 
     const log = ctx.call({ methodName: 'registerEventHandlers' });
-    log.start({ _id: this.#id });
+    log.start({ _id: this.id });
 
-    if (this.#id === null) {
+    if (this.id === null) {
       throw this.errNoViewReference();
     }
 
@@ -184,7 +184,7 @@ export class ViewController {
       return () => {};
     }
 
-    const viewEmitter = new ViewEmitter(this.#id);
+    const viewEmitter = new ViewEmitter(this.id);
 
     Object.keys(finalEventHandlers).forEach(eventStr => {
       const event = eventStr as keyof EventHandlers;
@@ -203,7 +203,7 @@ export class ViewController {
     const unsubscribe = () => viewEmitter.removeAllListeners();
 
     // expose to class to be able to unsubscribe on dismiss
-    this.#unsubscribeAllListeners = unsubscribe;
+    this.unsubscribeAllListeners = unsubscribe;
 
     return unsubscribe;
   }
