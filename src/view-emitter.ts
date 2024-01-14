@@ -25,7 +25,6 @@ export class ViewEmitter {
 
   constructor(viewId: string) {
     this.viewId = viewId;
-    $bridge.addEventListener;
   }
 
   public addListener(
@@ -37,7 +36,6 @@ export class ViewEmitter {
     // This function deserializes & decodes args
     // All native callbacks are expected to return only 1 arg
     const viewId = this.viewId;
-    callback;
 
     return $bridge.addEventListener(event, function (arg) {
       const eventView = this.rawValue['view'] ?? null;
