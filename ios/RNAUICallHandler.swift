@@ -273,8 +273,8 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     /// PURCHASE SUCCESS
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didFinishPurchase product: AdaptyPaywallProduct,
-                                  profile: AdaptyProfile) {
-        self.pushEvent(EventName.onPurchaseCompleted, view: controller, data: profile)
+                                  purchasedInfo: AdaptyPurchasedInfo) {
+        self.pushEvent(EventName.onPurchaseCompleted, view: controller, data: purchasedInfo.profile)
     }
     
     /// RENDERING FAILED
