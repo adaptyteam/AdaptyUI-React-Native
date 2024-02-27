@@ -33,6 +33,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             EventName.onPurchaseCancelled.rawValue,
             EventName.onPurchaseCompleted.rawValue,
             EventName.onPurchaseFailed.rawValue,
+            EventName.onRestoreStarted.rawValue,
             EventName.onRestoreCompleted.rawValue,
             EventName.onRestoreFailed.rawValue,
             EventName.onRenderingFailed.rawValue,
@@ -40,6 +41,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             EventName.onAction.rawValue,
             EventName.onCustomEvent.rawValue,
             EventName.onUrlPress.rawValue,
+            EventName.onAndroidSystemBack.rawValue,
         ]
     }
     
@@ -118,7 +120,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         paywall: AdaptyPaywall,
         locale: String?,
         preloadProducts: Bool,
-        productsTitlesResolver: ((AdaptyProduct) -> String)?
+        customTags: [String: String]?
     ) {
         AdaptyUI.getViewConfiguration(forPaywall: paywall, locale: locale ?? "en") { result in
             switch result {
@@ -130,7 +132,8 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                     for: paywall,
                     products: nil,
                     viewConfiguration: config,
-                    delegate: self
+                    delegate: self,
+                    tagResolver: customTags
                 )
                 
                 self.cachePaywallController(vc, id: vc.id)
@@ -170,7 +173,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     private func handleCreateView(_ ctx: AdaptyContext) throws {
         let paywallStr: String = try ctx.params.getRequiredValue(for: .paywall)
         let preloadProducts: Bool? = ctx.params.getOptionalValue(for: .prefetch_products)
-        let productTitles: [String: String]? = ctx.params.getOptionalValue(for: .productIds)
+        let customTags: [String: String]? = try ctx.params.getDecodedOptionalValue(for: .custom_tags, jsonDecoder: AdaptyContext.jsonDecoder)
         let locale: String? = ctx.params.getOptionalValue(for: .locale)
         
         guard let paywallData = paywallStr.data(using: .utf8),
@@ -185,7 +188,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             paywall: paywall,
             locale: locale,
             preloadProducts: preloadProducts ?? false,
-            productsTitlesResolver: { productTitles?[$0.vendorProductId] ?? $0.localizedTitle }
+            customTags: customTags
         )
     }
     
@@ -302,6 +305,11 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     func paywallController(_ controller: AdaptyPaywallController,
                            didCancelPurchase product: AdaptyPaywallProduct) {
         self.pushEvent(EventName.onPurchaseCancelled, view: controller, data: product)
+    }
+
+    /// RESTORE STARTED
+    public func paywallControllerDidStartRestore(_ controller: AdaptyPaywallController) {
+        self.pushEvent(EventName.onRestoreStarted, view: controller)
     }
     
     /// RESTORE SUCCESS

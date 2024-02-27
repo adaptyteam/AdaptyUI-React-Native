@@ -1,4 +1,4 @@
-package io.adapty.react.ui
+package com.adapty.react.ui
 
 import com.adapty.errors.AdaptyError
 import com.adapty.internal.crossplatform.ui.AdaptyUiView
@@ -10,7 +10,7 @@ import com.adapty.ui.AdaptyUI
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import io.adapty.react.ui.PaywallEvent.*
+import com.adapty.react.ui.PaywallEvent.*
 
 class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJavaModule(ctx) {
   private val helper = CrossplatformUiHelper.shared
@@ -95,6 +95,9 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
           val error = event.data["error"] as AdaptyError
           sendEvent(EventName.ON_PURCHASE_FAILED, error, view.id)
         }
+        DID_START_RESTORE -> {
+          sendEvent(EventName.ON_RESTORE_STARTED, null, view.id)
+        }
         DID_FINISH_RESTORE -> {
           val profile = event.data["profile"] as AdaptyProfile
           sendEvent(EventName.ON_RESTORE_COMPLETED, profile, view.id)
@@ -123,6 +126,7 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
             }
           }
         }
+        DID_PERFORM_SYSTEM_BACK_ACTION -> sendEvent(EventName.ON_ANDROID_SYSTEM_BACK,null, view.id)
 
         null -> {}
       }
@@ -154,6 +158,7 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
     val locale: String? = ctx.params.getOptionalValue(ParamKey.LOCALE)
     val preloadProducts: Boolean = ctx.params.getOptionalValue(ParamKey.PREFETCH_PRODUCTS) ?: false
     val personalizedOffers: HashMap<String, Boolean>? = ctx.params.getOptionalValue(ParamKey.PRODUCT_TITLES)
+    val customTags: HashMap<String, String>? = ctx.params.getDecodedOptionalValue(ParamKey.CUSTOM_TAGS)
 
 
     helper.handleCreateView(
@@ -161,6 +166,7 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
       locale ?: "en",
       preloadProducts,
       personalizedOffers,
+      customTags,
       { jsonView ->
         ctx.resolve(jsonView.id, "") },
       { error -> ctx.forwardError(error, "") }

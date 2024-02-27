@@ -33,6 +33,14 @@ export interface EventHandlers {
    */
   onCloseButtonPress: () => EventHandlerResult;
   /**
+   * Called when a user navigates back on Android
+   *
+   * If you return `true`, the paywall view will be closed.
+   * We strongly recommend to return `true` in this case.
+   * @default true
+   */
+  onAndroidSystemBack: () => EventHandlerResult;
+  /**
    * Called when a user taps the product in the paywall view
    *
    * If you return `true` from this callback, the paywall view will be closed.
@@ -68,6 +76,12 @@ export interface EventHandlers {
    * @param {AdaptyError} error - AdaptyError object with error code and message
    */
   onPurchaseFailed: (error: AdaptyError) => EventHandlerResult;
+  /**
+   * Called when a user taps the restore button in the paywall view
+   *
+   * If you return `true` from this callback, the paywall view will be closed.
+   */
+  onRestoreStarted: () => EventHandlerResult;
   /**
    * Called when a purchase is completed
    *
@@ -120,10 +134,22 @@ export interface CreatePaywallViewParamsInput {
    */
   prefetchProducts?: boolean;
   locale?: string;
+  /**
+   * If you are going to use custom tags functionality, pass an object with tags and corresponding replacement values
+   * 
+   * ```
+   * {
+   *   'USERNAME': 'Bruce',
+   *   'CITY': 'Philadelphia'
+   * }
+   * ```
+   */
+  customTags?: Record<string, string>;
 }
 
 export const DEFAULT_EVENT_HANDLERS: Partial<EventHandlers> = {
   onCloseButtonPress: () => true,
+  onAndroidSystemBack: () => true,
   onRestoreCompleted: () => true,
   onPurchaseCompleted: () => true,
 };

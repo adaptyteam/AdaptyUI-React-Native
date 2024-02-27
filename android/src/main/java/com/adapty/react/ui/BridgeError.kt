@@ -1,4 +1,4 @@
-package io.adapty.react.ui
+package com.adapty.react.ui
 
 import com.adapty.internal.crossplatform.CrossplatformHelper
 import com.adapty.internal.crossplatform.ui.AdaptyUiBridgeError

@@ -1,6 +1,6 @@
 @file:Suppress("SpellCheckingInspection")
 
-package io.adapty.react.ui
+package com.adapty.react.ui
 
 import android.app.Activity
 import com.adapty.errors.AdaptyError

@@ -42,6 +42,9 @@ export class ViewController {
     if (params.locale) {
       body.set('locale', params.locale);
     }
+    if (params.customTags) {
+      body.set('custom_tags', JSON.stringify(params.customTags));
+    }
 
     const result = await view.handle<string>('create_view', body, ctx, log);
 
@@ -152,6 +155,7 @@ export class ViewController {
    * Your config is assigned into three event listeners {@link DEFAULT_EVENT_HANDLERS},
    * that handle default closing behavior.
    * - `onCloseButtonPress`
+   * - `onAndroidSystemBack`
    * - `onRestoreCompleted`
    * - `onPurchaseCompleted`
    *
