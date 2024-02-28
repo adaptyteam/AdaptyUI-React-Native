@@ -42,7 +42,6 @@
     "build": "tsc",
     "test": "jest",
     "format": "prettier . --check",
-    "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "release": "release-it"
   },
