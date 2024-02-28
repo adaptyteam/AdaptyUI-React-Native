@@ -7,6 +7,7 @@ enum EventName: String {
     case onPurchaseCancelled = "onPurchaseCancelled"
     case onPurchaseCompleted = "onPurchaseCompleted"
     case onPurchaseFailed = "onPurchaseFailed"
+    case onRestoreStarted = "onRestoreStarted"
     case onRestoreCompleted = "onRestoreCompleted"
     case onRestoreFailed = "onRestoreFailed"
     case onRenderingFailed = "onRenderingFailed"
@@ -14,6 +15,7 @@ enum EventName: String {
     case onAction = "onAction"
     case onCustomEvent = "onCustomEvent"
     case onUrlPress = "onUrlPress"
+    case onAndroidSystemBack = "onAndroidSystemBack"
 }
 
 enum MethodName: String {
@@ -21,11 +23,4 @@ enum MethodName: String {
     case presentView = "present_view"
     case dismissView = "dismiss_view"
     case notImplemented = "not_implemented"
-}
-
-struct Const {
-    static let PAYWALL = "paywall"
-    static let PREFETCH_PRODUCTS = "prefetch_product"
-    static let VIEW_ID = "view_id"
-    static let PRODUCTS_TITLES = "products_titles"
 }

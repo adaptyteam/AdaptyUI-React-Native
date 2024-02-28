@@ -1,4 +1,4 @@
-package io.adapty.react.ui
+package com.adapty.react.ui
 
 import com.adapty.internal.crossplatform.ui.CrossplatformUiHelper
 import com.facebook.react.ReactPackage
@@ -15,8 +15,9 @@ class RNAUIPackage : ReactPackage {
   override fun createNativeModules(
     reactContext: ReactApplicationContext
   ): List<NativeModule> {
-    CrossplatformUiHelper.init(reactContext)
-    CrossplatformUiHelper.shared.activity = reactContext.currentActivity
+    if (CrossplatformUiHelper.init(reactContext)) {
+      CrossplatformUiHelper.shared.activity = reactContext.currentActivity
+    }
 
     return listOf(RNAUIModule(reactContext))
   }

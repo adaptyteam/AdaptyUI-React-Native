@@ -8,6 +8,7 @@ export const ParamKeys = [
   'paywall',
   'locale',
   'prefetch_products',
+  'custom_tags',
   'view_id',
 ] as const;
 export type ParamKey = (typeof ParamKeys)[number];

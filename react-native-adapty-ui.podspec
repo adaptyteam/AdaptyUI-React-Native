@@ -16,10 +16,10 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
-  s.dependency "AdaptyUI", "2.0.2"
+  s.dependency "AdaptyUI", "2.1.2"
   s.dependency "React-Core"
-  s.dependency "Adapty", ">= 2.7.0"
-  s.dependency "react-native-adapty-sdk", ">= 2.7.0"
+  s.dependency "Adapty", ">= 2.9.6"
+  s.dependency "react-native-adapty-sdk", ">= 2.9.3"
 
   # Don't install the dependencies when we run `pod install` in the old architecture.
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
