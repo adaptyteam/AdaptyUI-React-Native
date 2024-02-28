@@ -41,7 +41,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "format": "prettier .",
+    "format": "prettier . --check",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "release": "release-it"
   },

@@ -75,6 +75,8 @@ android/keystores/debug.keystore
 
 dist/
 
+.watchmanconfig
+.editorconfig
 
 # Local builds
 .tgz
