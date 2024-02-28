@@ -1,4 +1,4 @@
-import { AdaptyError, AdaptyPaywall } from 'react-native-adapty';
+import { AdaptyPaywall } from 'react-native-adapty';
 import { LogContext, LogScope } from 'react-native-adapty/dist/logger';
 import { AdaptyPaywallCoder } from 'react-native-adapty/dist/coders/adapty-paywall';
 
@@ -109,7 +109,7 @@ export class ViewController {
 
     if (this.id === null) {
       log.failed({ error: 'no _id' });
-      throw this.errNoViewReference();
+      throw this.errNoViewReference;
     }
 
     const body = new ParamMap();
@@ -132,7 +132,7 @@ export class ViewController {
 
     if (this.id === null) {
       log.failed({ error: 'no id' });
-      throw this.errNoViewReference();
+      throw this.errNoViewReference;
     }
 
     const body = new ParamMap();
@@ -174,7 +174,7 @@ export class ViewController {
     log.start({ _id: this.id });
 
     if (this.id === null) {
-      throw this.errNoViewReference();
+      throw this.errNoViewReference;
     }
 
     const finalEventHandlers: Partial<EventHandlers> = {
@@ -212,8 +212,6 @@ export class ViewController {
     return unsubscribe;
   }
 
-  private errNoViewReference(): AdaptyError {
-    // TODO: Make a separate error type once AdaptyError is refactored
-    throw new Error('View reference not found');
-  }
+ // TODO: Make a separate error type once AdaptyError is refactored
+  private errNoViewReference = new Error('View reference not found');
 }
