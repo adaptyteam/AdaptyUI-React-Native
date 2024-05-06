@@ -203,7 +203,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         DispatchQueue.main.async {
             vc.modalPresentationCapturesStatusBarAppearance = true
             vc.modalPresentationStyle = .overFullScreen
-            
+
             guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
                 return ctx.bridgeError(
                     BridgeError.typeMismatch(name: .view_id, type: "Failed to find root view controller")
