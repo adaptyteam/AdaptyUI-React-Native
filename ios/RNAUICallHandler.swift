@@ -202,7 +202,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         
         DispatchQueue.main.async {
             vc.modalPresentationCapturesStatusBarAppearance = true
-            vc.modalPresentationStyle = .formSheet
+            vc.modalPresentationStyle = .overFullScreen
             
             guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
                 return ctx.bridgeError(
@@ -210,7 +210,13 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                 )
                 
             }
-            
+
+            guard !rootVC.isOrContainsAdaptyController else {
+                return ctx.bridgeError(
+                    BridgeError.typeMismatch(name: .view_id, type: "View already presented")
+                )
+            }
+
             var currentVC = rootVC
             while currentVC.presentedViewController != nil {
                 currentVC = currentVC.presentedViewController!
