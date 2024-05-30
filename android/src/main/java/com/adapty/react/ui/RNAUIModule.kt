@@ -155,7 +155,6 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
     val paywall: AdaptyPaywall = ctx.params.getDecodedValue(
       ParamKey.PAYWALL,
     )
-    val locale: String? = ctx.params.getOptionalValue(ParamKey.LOCALE)
     val preloadProducts: Boolean = ctx.params.getOptionalValue(ParamKey.PREFETCH_PRODUCTS) ?: false
     val personalizedOffers: HashMap<String, Boolean>? = ctx.params.getOptionalValue(ParamKey.PRODUCT_TITLES)
     val customTags: HashMap<String, String>? = ctx.params.getDecodedOptionalValue(ParamKey.CUSTOM_TAGS)
@@ -163,7 +162,6 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
 
     helper.handleCreateView(
       paywall,
-      locale ?: "en",
       preloadProducts,
       personalizedOffers,
       customTags,

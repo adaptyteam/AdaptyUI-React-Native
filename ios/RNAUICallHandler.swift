@@ -118,11 +118,10 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     private func getConfigurationAndCreateView(
         ctx: AdaptyContext,
         paywall: AdaptyPaywall,
-        locale: String?,
         preloadProducts: Bool,
         customTags: [String: String]?
     ) {
-        AdaptyUI.getViewConfiguration(forPaywall: paywall, locale: locale ?? "en") { result in
+        AdaptyUI.getViewConfiguration(forPaywall: paywall) { result in
             switch result {
             case let .failure(error):
                 return ctx.forwardError(error)
@@ -174,7 +173,6 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         let paywallStr: String = try ctx.params.getRequiredValue(for: .paywall)
         let preloadProducts: Bool? = ctx.params.getOptionalValue(for: .prefetch_products)
         let customTags: [String: String]? = try ctx.params.getDecodedOptionalValue(for: .custom_tags, jsonDecoder: AdaptyContext.jsonDecoder)
-        let locale: String? = ctx.params.getOptionalValue(for: .locale)
         
         guard let paywallData = paywallStr.data(using: .utf8),
               let paywall = try? AdaptyContext.jsonDecoder.decode(AdaptyPaywall.self, from: paywallData)
@@ -186,7 +184,6 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         getConfigurationAndCreateView(
             ctx: ctx,
             paywall: paywall,
-            locale: locale,
             preloadProducts: preloadProducts ?? false,
             customTags: customTags
         )
