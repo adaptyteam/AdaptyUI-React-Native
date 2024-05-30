@@ -39,9 +39,6 @@ export class ViewController {
     body.set('paywall', JSON.stringify(coder.encode(paywall)));
 
     body.set('prefetch_products', params.prefetchProducts ?? true);
-    if (params.locale) {
-      body.set('locale', params.locale);
-    }
     if (params.customTags) {
       body.set('custom_tags', JSON.stringify(params.customTags));
     }

@@ -133,7 +133,6 @@ export interface CreatePaywallViewParamsInput {
    * `true` if you want to prefetch products before presenting a paywall view.
    */
   prefetchProducts?: boolean;
-  locale?: string;
   /**
    * If you are going to use custom tags functionality, pass an object with tags and corresponding replacement values
    * 
