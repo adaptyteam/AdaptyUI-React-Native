@@ -46,7 +46,7 @@
   },
   "peerDependencies": {
     "react-native": ">= 0.60.0",
-    "react-native-adapty": ">=2.11.0"
+    "react-native-adapty": ">=2.11.3"
   },
   "devDependencies": {
     "@release-it/conventional-changelog": "5.1.1",
@@ -60,7 +60,7 @@
     "prettier": "2.8.8",
     "react": "16.13.1",
     "react-native": "0.63.0",
-    "react-native-adapty": "2.11.0",
+    "react-native-adapty": "2.11.3",
     "release-it": "15.11.0",
     "typescript": "5.1.3"
   },
