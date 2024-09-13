@@ -106,11 +106,11 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  compileOnly 'io.adapty:android-sdk:2.11.2'
+  compileOnly 'io.adapty:android-sdk:2.11.5'
   compileOnly 'io.adapty.internal:crossplatform:2.11.1'
   implementation 'io.adapty.internal:crossplatform-ui:2.11.0'
 
-  implementation 'io.adapty:android-ui:2.11.0'
+  implementation 'io.adapty:android-ui:2.11.3'
 }
 
 if (isNewArchitectureEnabled()) {
