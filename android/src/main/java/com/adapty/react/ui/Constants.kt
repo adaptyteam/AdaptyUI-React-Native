@@ -6,6 +6,7 @@ enum class ParamKey(val value: String) {
   LOCALE("locale"),
   PRODUCT_TITLES("products_titles"),
   CUSTOM_TAGS("custom_tags"),
+  TIMER_INFO("timer_info"),
   PREFETCH_PRODUCTS("prefetch_products"),
 }
 

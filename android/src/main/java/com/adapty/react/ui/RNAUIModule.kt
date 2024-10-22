@@ -158,6 +158,7 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
     val preloadProducts: Boolean = ctx.params.getOptionalValue(ParamKey.PREFETCH_PRODUCTS) ?: false
     val personalizedOffers: HashMap<String, Boolean>? = ctx.params.getOptionalValue(ParamKey.PRODUCT_TITLES)
     val customTags: HashMap<String, String>? = ctx.params.getDecodedOptionalValue(ParamKey.CUSTOM_TAGS)
+    val timerInfo: HashMap<String, String>? = ctx.params.getDecodedOptionalValue(ParamKey.TIMER_INFO)
 
 
     helper.handleCreateView(
@@ -165,6 +166,7 @@ class RNAUIModule(private val ctx: ReactApplicationContext) : ReactContextBaseJa
       preloadProducts,
       personalizedOffers,
       customTags,
+      timerInfo,
       { jsonView ->
         ctx.resolve(jsonView.id, "") },
       { error -> ctx.forwardError(error, "") }

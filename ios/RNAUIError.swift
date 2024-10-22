@@ -18,6 +18,7 @@ extension RNAUIError: CustomDebugStringConvertible {
     }
 }
 
+@available(iOS 15.0, *)
 extension RNAUIError: CustomAdaptyError {
     public static let errorDomain = AdaptyError.AdaptyUIErrorDomain
 

@@ -3,6 +3,7 @@ import Adapty
 import AdaptyUI
 import react_native_adapty_sdk
 
+@available(iOS 15.0, *)
 extension UIViewController {
     var isOrContainsAdaptyController: Bool {
         guard let presentedViewController = presentedViewController else {
@@ -17,7 +18,7 @@ extension UIViewController {
 class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     // MARK: - Config
     
-    private var paywallControllers = [UUID: AdaptyPaywallController]()
+    private var paywallControllers = [UUID: Any]()
     //    private static var adaptyUIDelegate: AdaptyUIDelegate!
     
     // TODO: Why
@@ -63,6 +64,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// Sends event to JS layer if client has listeners
+    @available(iOS 15.0, *)
     private func pushEvent(_ event: EventName, view: AdaptyPaywallController) {
         if !hasListeners {
             return
@@ -83,6 +85,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// Sends event to JS layer if client has listeners
+    @available(iOS 15.0, *)
     private func pushEvent<T: Encodable>(_ event: EventName, view: AdaptyPaywallController, data: T) {
         if !hasListeners {
             return
@@ -101,25 +104,30 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
         self.sendEvent(withName: event.rawValue, body: str)
     }
     
+    @available(iOS 15.0, *)
     private func cachePaywallController(_ controller: AdaptyPaywallController, id: UUID) {
         paywallControllers[id] = controller
     }
     
+    @available(iOS 15.0, *)
     private func deleteCachedPaywallController(_ id: String) {
         guard let uuid = UUID(uuidString: id) else { return }
         paywallControllers.removeValue(forKey: uuid)
     }
     
+    @available(iOS 15.0, *)
     private func cachedPaywallController(_ id: String) -> AdaptyPaywallController? {
         guard let uuid = UUID(uuidString: id) else { return nil }
-        return paywallControllers[uuid]
+        return paywallControllers[uuid] as? AdaptyPaywallController
     }
     
+    @available(iOS 15.0, *)
     private func getConfigurationAndCreateView(
         ctx: AdaptyContext,
         paywall: AdaptyPaywall,
         preloadProducts: Bool,
-        customTags: [String: String]?
+        customTags: [String: String]?,
+        timerInfo: [String: String]?
     ) {
         AdaptyUI.getViewConfiguration(forPaywall: paywall) { result in
             switch result {
@@ -127,13 +135,20 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
                 return ctx.forwardError(error)
                 
             case let .success(config):
-                let vc = AdaptyUI.paywallController(
-                    for: paywall,
-                    products: nil,
-                    viewConfiguration: config,
-                    delegate: self,
-                    tagResolver: customTags
-                )
+                let vc: AdaptyPaywallController
+                
+                do {
+                    vc = try AdaptyUI.paywallController(
+                        for: paywall,
+                        products: nil,
+                        viewConfiguration: config,
+                        delegate: self,
+                        tagResolver: customTags,
+                        timerResolver: timerInfo
+                    )
+                } catch {
+                    return ctx.bridgeError(error)
+                }
                 
                 self.cachePaywallController(vc, id: vc.id)
                 
@@ -170,9 +185,14 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     private func handleCreateView(_ ctx: AdaptyContext) throws {
+        guard #available(iOS 15.0, *) else {
+            throw BridgeError.unsupportedIosVersion
+        }
+        
         let paywallStr: String = try ctx.params.getRequiredValue(for: .paywall)
         let preloadProducts: Bool? = ctx.params.getOptionalValue(for: .prefetch_products)
         let customTags: [String: String]? = try ctx.params.getDecodedOptionalValue(for: .custom_tags, jsonDecoder: AdaptyContext.jsonDecoder)
+        let timerInfo: [String: String]? = try ctx.params.getDecodedOptionalValue(for: .timer_info, jsonDecoder: AdaptyContext.jsonDecoder)
         
         guard let paywallData = paywallStr.data(using: .utf8),
               let paywall = try? AdaptyContext.jsonDecoder.decode(AdaptyPaywall.self, from: paywallData)
@@ -180,16 +200,20 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             throw BridgeError.typeMismatch(name: .paywall, type: "String")
         }
         
-        
         getConfigurationAndCreateView(
             ctx: ctx,
             paywall: paywall,
             preloadProducts: preloadProducts ?? false,
-            customTags: customTags
+            customTags: customTags,
+            timerInfo: timerInfo
         )
     }
     
     private func handlePresentView(_ ctx: AdaptyContext) throws {
+        guard #available(iOS 15.0, *) else {
+            throw BridgeError.unsupportedIosVersion
+        }
+        
         let id: String = try ctx.params.getRequiredValue(for: .view_id)
         
         guard let vc = cachedPaywallController(id) else {
@@ -221,6 +245,10 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     private func handleDismissView(_ ctx: AdaptyContext) throws {
+        guard #available(iOS 15.0, *) else {
+            throw BridgeError.unsupportedIosVersion
+        }
+        
         let id: String = try ctx.params.getRequiredValue(for: .view_id)
         
         guard let vc = cachedPaywallController(id) else {
@@ -240,6 +268,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     // MARK: - Event Handlers
+    @available(iOS 15.0, *)
     func paywallController(_ controller: AdaptyPaywallController, didPerform action: AdaptyUI.Action) {
         self.pushEvent(EventName.onAction, view: controller)
         switch action {
@@ -248,7 +277,6 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
             break
         case let .openURL(url):
             self.pushEvent(.onUrlPress, view: controller, data: url.absoluteString)
-            UIApplication.shared.open(url, options: [:])
             break
         case let .custom(id):
             self.pushEvent(.onCustomEvent, view: controller, data: id)
@@ -259,18 +287,21 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     
     /// PRODUCT SELECTED
+    @available(iOS 15.0, *)
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didSelectProduct product: AdaptyPaywallProduct) {
         self.pushEvent(EventName.onProductSelected, view: controller, data: product)
     }
     
     /// PURCHASE STARTED
+    @available(iOS 15.0, *)
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didStartPurchase product: AdaptyPaywallProduct) {
         self.pushEvent(EventName.onPurchaseStarted, view: controller, data: product)
     }
     
     /// PURCHASE SUCCESS
+    @available(iOS 15.0, *)
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didFinishPurchase product: AdaptyPaywallProduct,
                                   purchasedInfo: AdaptyPurchasedInfo) {
@@ -278,12 +309,14 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// RENDERING FAILED
+    @available(iOS 15.0, *)
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didFailRenderingWith error: AdaptyError) {
         self.pushEvent(EventName.onRenderingFailed, view: controller, data: error)
     }
     
     /// LOAD PRODUCTS FAILED
+    @available(iOS 15.0, *)
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didFailLoadingProductsWith error: AdaptyError) -> Bool {
         self.pushEvent(EventName.onLoadingProductsFailed, view: controller, data: error)
@@ -292,6 +325,7 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// PURCHASE FAILED
+    @available(iOS 15.0, *)
     func paywallController(_ controller: AdaptyPaywallController,
                            didFailPurchase product: AdaptyPaywallProduct,
                            error: AdaptyError) {
@@ -299,17 +333,20 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     }
     
     /// CANCEL PURCHASE PRESS
+    @available(iOS 15.0, *)
     func paywallController(_ controller: AdaptyPaywallController,
                            didCancelPurchase product: AdaptyPaywallProduct) {
         self.pushEvent(EventName.onPurchaseCancelled, view: controller, data: product)
     }
 
     /// RESTORE STARTED
+    @available(iOS 15.0, *)
     public func paywallControllerDidStartRestore(_ controller: AdaptyPaywallController) {
         self.pushEvent(EventName.onRestoreStarted, view: controller)
     }
     
     /// RESTORE SUCCESS
+    @available(iOS 15.0, *)
     func paywallController(_ controller: AdaptyPaywallController,
                            didFinishRestoreWith profile: AdaptyProfile) {
         self.pushEvent(EventName.onRestoreCompleted, view: controller, data: profile)
@@ -317,8 +354,25 @@ class RNAUICallHandler: RCTEventEmitter, AdaptyPaywallControllerDelegate {
     
     
     /// RESTORE FAILED
+    @available(iOS 15.0, *)
     public func paywallController(_ controller: AdaptyPaywallController,
                                   didFailRestoreWith error: AdaptyError) {
         self.pushEvent(EventName.onRestoreFailed, view: controller, data: error)
+    }
+}
+
+extension Dictionary<String, String>: AdaptyTimerResolver {
+    public func timerEndAtDate(for timerId: String) -> Date {
+        if let dateStr = self[timerId], let date = endTimeStrToDate(dateStr: dateStr) {
+            return date
+        }
+        return Date(timeIntervalSinceNow: 3600.0)
+    }
+
+    private func endTimeStrToDate(dateStr: String) -> Date? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        return dateFormatter.date(from: dateStr)
     }
 }

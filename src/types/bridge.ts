@@ -9,6 +9,7 @@ export const ParamKeys = [
   'locale',
   'prefetch_products',
   'custom_tags',
+  'timer_info',
   'view_id',
 ] as const;
 export type ParamKey = (typeof ParamKeys)[number];

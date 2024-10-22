@@ -42,6 +42,35 @@ export class ViewController {
     if (params.customTags) {
       body.set('custom_tags', JSON.stringify(params.customTags));
     }
+    if (params.timerInfo) {
+      const convertTimerInfo = (timerInfo: Record<string, Date>): Record<string, string> => {
+        const formatDate = (date: Date): string => {
+          const pad = (num: number): string => 
+            num < 10 ? `0${num}` : num.toString();
+        
+          const year = date.getFullYear();
+          const month = pad(date.getMonth() + 1);
+          const day = pad(date.getDate());
+          const hours = pad(date.getHours());
+          const minutes = pad(date.getMinutes());
+          const seconds = pad(date.getSeconds());
+        
+          return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        };
+
+        const result: Record<string, string> = {};
+        for (const key in timerInfo) {
+          if (timerInfo.hasOwnProperty(key)) {
+            const date = timerInfo[key];
+            if (date instanceof Date) {
+              result[key] = formatDate(date);
+            }
+          }
+        }
+        return result;
+      }
+      body.set('timer_info', JSON.stringify(convertTimerInfo(params.timerInfo)));
+    }
 
     const result = await view.handle<string>('create_view', body, ctx, log);
 
