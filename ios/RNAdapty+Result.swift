@@ -2,6 +2,7 @@ import Foundation
 import AdaptyUI
 import react_native_adapty_sdk
 
+@available(iOS 15.0, *)
 struct AdaptyViewResult<T: Encodable>: Encodable {
     var adaptyResult: AdaptyResult<T>
     var view: AdaptyPaywallController

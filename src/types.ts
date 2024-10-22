@@ -144,6 +144,10 @@ export interface CreatePaywallViewParamsInput {
    * ```
    */
   customTags?: Record<string, string>;
+  /**
+   * If you are going to use custom timer functionality, pass an object with timer ids and corresponding dates the timers should end at
+   */
+  timerInfo?: Record<string, Date>;
 }
 
 export const DEFAULT_EVENT_HANDLERS: Partial<EventHandlers> = {
