@@ -98,7 +98,7 @@ dependencies {
   compileOnly 'io.adapty.internal:crossplatform:3.0.0'
   implementation 'io.adapty.internal:crossplatform-ui:3.0.0'
 
-  implementation 'io.adapty:android-ui:3.0.1'
+  implementation 'io.adapty:android-ui:3.0.2'
 }
 
 if (isNewArchitectureEnabled()) {
