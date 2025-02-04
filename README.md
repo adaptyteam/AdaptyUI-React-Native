@@ -1,3 +1,5 @@
+## ⚠️ This repository is deprecated because AdaptyUI is now part of [AdaptySDK](https://github.com/adaptyteam/AdaptySDK-React-Native). Please consider updating. ⚠️
+
 <h1 align="center" style="border-bottom: none">
 <b>
     <a href="https://adapty.io/?utm_source=github&utm_medium=referral&utm_campaign=AdaptySDK-iOS">
